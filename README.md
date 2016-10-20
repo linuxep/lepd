@@ -1,7 +1,7 @@
 # lepd
 server daemon of LEP
 
-LepD是什么
+## LepD是什么
 
 
 LEP的结构采用的是Client/Server的模型， Client端是Django+Web服务器，负责显示从Server端取得的数据。 Server端是我们最终需要profile的target。 LepD运行在Server(Target)端, 它的工作如下：
@@ -11,7 +11,7 @@ LEP的结构采用的是Client/Server的模型， Client端是Django+Web服务�
 LepD会解析接收到的RPC命令，取得系统的各类不同的数据信息，比如内存，CPU，IO状态
 将取得的结果，转换成Json格式返回给Client
 
-LepD应用
+## LepD应用
 
 
 LepvClient通过JsonRpc连接
@@ -42,29 +42,23 @@ root@bob-VirtualBox:~#
 当发现LepD连不上，或者获得不到数据时，直接Kill掉lepd进程，然后再通过如下命令把LepD重启
 git@iZ22ngfe4n3Z:~$ /opt/deploy_lepv/lepd &
 
-LepD实现原理
-
-如何编译
+## 如何编译
 
 root@bob-VirtualBox:~#  git clone git@www.linuxep.com:repo/lep/lepd lepd-src
 
-root@bob-VirtualBox:~# cd lepd-src/
-
-root@bob-VirtualBox:~/lepd-src# ls
-
-cJSON.c  cJSON.h  example_client.py  jsonrpc-c.c  jsonrpc-c.h  server.c
-
-
-For X86:
+For X86（电脑需要安装libev-dev库）:
 
 root@bob-VirtualBox:~/lepd-src# ./build_x86.sh 
 
-For ARM:
+For ARM（电脑需要安装arm-linux-gnueabi-gcc）:
 
 root@bob-VirtualBox:~/lepd-src# ./build_arm.sh 
 
+## 如何运行
 
-实现
+运行lepd需要root权限，因为系统有些proc文件无root权限无法读取。
+
+## 实现
 
 用了cJSON和jsonrpc-c
 
