@@ -52,12 +52,16 @@ root@bob-VirtualBox:~# cd lepd-src/
 
 root@bob-VirtualBox:~/lepd-src# ls
 
-build_run.sh  cJSON.c  cJSON.h  example_client.py  jsonrpc-c.c  jsonrpc-c.h  server.c
+cJSON.c  cJSON.h  example_client.py  jsonrpc-c.c  jsonrpc-c.h  server.c
 
 
-root@bob-VirtualBox:~/lepd-src# chmod +x ./build_run.sh 
+For X86:
 
-root@bob-VirtualBox:~/lepd-src# ./build_run.sh 
+root@bob-VirtualBox:~/lepd-src# ./build_x86.sh 
+
+For ARM:
+
+root@bob-VirtualBox:~/lepd-src# ./build_arm.sh 
 
 
 实现
