@@ -8,14 +8,12 @@ MKDIR := mkdir -p
 
 ifeq ($(ARCH), x86)
 CC := gcc
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR)
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_SYSTEM_FUN
 LDFLAG :=
-DEFS = -DSYSTEM_FUNC
 else
 CC :=arm-linux-gnueabi-gcc
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR)
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_TOOLBOX_FUN
 LDFLAG := -L$(PROJECT_LIB_DIR)
-DEFS = -DTOOLBOX_FUNC
 endif
 
 #DEFS = -DBUILDIN_FUNC
