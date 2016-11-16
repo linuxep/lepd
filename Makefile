@@ -7,6 +7,7 @@ PROJECT_OBJ_DIR=./objs
 PROJECT_EV_DIR=./arm-libev
 PROJECT_MODULE_DIR=./modules
 PROJECT_SYSSTAT_DIR=$(PROJECT_MODULE_DIR)/sysstat-lite
+PROJECT_BUSYBOX_DIR=$(PROJECT_MODULE_DIR)/busybox-lite
 MKDIR := mkdir -p
 
 
@@ -26,10 +27,10 @@ LDFLAG := -L$(PROJECT_EV_DIR)
 endif
 
 export CROSS_COMPILE CC AR LD
-
 #DEFS = -DBUILDIN_FUNC
 
 SUBDIRS := $(PROJECT_SYSSTAT_DIR)
+
 
 TARGETS = lepd
 
@@ -42,14 +43,18 @@ PROJECT_ALL_OBJS := $(addprefix $(PROJECT_OBJ_DIR)/, $(PROJECT_OBJ))
 all:$(PROJECT_ALL_OBJS)
 	$(CC) $(wildcard $(PROJECT_SRC_DIR)/*.c) $(wildcard $(PROJECT_LIB_DIR)/*.a) $(CFLAGS) -o $(PROJECT_BIN_DIR)/$(TARGETS) $(LDFLAG)
 
-make_dir:
+prepare:
+	cd $(SUBDIRS) && $(MAKE)
 	$(MKDIR) $(PROJECT_OBJ_DIR)
 	$(MKDIR) $(PROJECT_BIN_DIR)
  
-$(PROJECT_OBJ_DIR)/%.o : $(PROJECT_SRC_DIR)/%.c make_dir 
+$(PROJECT_OBJ_DIR)/%.o : $(PROJECT_SRC_DIR)/%.c prepare 
 	$(CC) -c $(CFLAGS) $< -o $@ 
 
 clean:
 	rm -fr $(PROJECT_OBJ_DIR)
 	rm -fr $(PROJECT_BIN_DIR)
 	-rm $(PROJECT_LIB_DIR)/*
+	cd $(SUBDIRS) && $(MAKE) clean
+
+
