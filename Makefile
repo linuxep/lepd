@@ -29,7 +29,7 @@ endif
 export CROSS_COMPILE CC AR LD
 #DEFS = -DBUILDIN_FUNC
 
-SUBDIRS := $(PROJECT_SYSSTAT_DIR)
+SUBDIRS := $(PROJECT_SYSSTAT_DIR) $(PROJECT_BUSYBOX_DIR)
 
 
 TARGETS = lepd
@@ -44,7 +44,8 @@ all:$(PROJECT_ALL_OBJS)
 	$(CC) $(wildcard $(PROJECT_SRC_DIR)/*.c) $(wildcard $(PROJECT_LIB_DIR)/*.a) $(CFLAGS) -o $(PROJECT_BIN_DIR)/$(TARGETS) $(LDFLAG)
 
 prepare:
-	cd $(SUBDIRS) && $(MAKE)
+	cd $(foreach i, $(shell echo $(SUBDIRS)), $(i)) && $(MAKE)
+	#cd $(SUBDIRS) && $(MAKE)
 	$(MKDIR) $(PROJECT_OBJ_DIR)
 	$(MKDIR) $(PROJECT_BIN_DIR)
  
@@ -55,6 +56,6 @@ clean:
 	rm -fr $(PROJECT_OBJ_DIR)
 	rm -fr $(PROJECT_BIN_DIR)
 	-rm $(PROJECT_LIB_DIR)/*
-	cd $(SUBDIRS) && $(MAKE) clean
-
+	#cd $(SUBDIRS) && $(MAKE) clean
+	cd $(foreach i, $(shell echo $(SUBDIRS)), $(i)) && $(MAKE) clean
 
