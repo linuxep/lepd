@@ -32,13 +32,6 @@ struct jrpc_server my_server;
 
 unsigned char *endstring = "lepdendstring";
 
-#ifdef TOOLBOX_FUN
-unsigned char *func_path = "../arm-toolbox/";
-#else
-unsigned char *func_path = "";
-#endif
-
-
 cJSON * say_hello(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	return cJSON_CreateString("Hello!lepdendstring");
@@ -71,20 +64,115 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString(proc_buff);
 }
 
+#ifdef _BUILTIN_FUN
+
+#include "sysstat.h"
+
+#include <unistd.h>  
+
+#define LOOKUP_TABLE_COUNT 32
+#define MAX_CMD_ARGV 32
+#define COMMAND(name) name##_main
+#define CMD_OUTPUT "./output.txt"
+ 
+typedef int (*builtin_func)(int argc, char **argv);
+typedef struct
+{
+	char* name;
+	builtin_func func;
+
+} builtin_func_info;
+
+static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT ] = {
+	{
+		.name = "iostat",
+		.func = COMMAND(iostat),
+	},
+};
+
+builtin_func lookup_func(char* name){
+	int i = 0;
+	for(i = 0; i < LOOKUP_TABLE_COUNT; i++){
+		if(!strcmp(name, lookup_table[i].name))
+			return lookup_table[i].func;
+	}
+	return NULL;
+}
+
+int read_result(char* buf){
+
+        memset(buf, 0, CMD_BUFF);
+        int fd = open(CMD_OUTPUT, O_RDONLY);
+        int size = 0;
+        if(fd){
+                size = read(fd, buf, CMD_BUFF);
+                close(fd);
+
+        }
+
+        return size;
+}
+
+cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+{
+	printf("aaaaaabbbb\n");
+	//printf("run_cmd:%s\n",ctx->data);
+
+        if (!ctx->data)
+                return NULL;
+
+	int argc = 0;  
+   	char *argv[MAX_CMD_ARGV];
+
+	char* p = malloc(strlen(ctx->data));
+        strcpy(p, ctx->data);		
+        char c[] = " ";  
+        char *r = strtok(p, c);  
+  
+        printf("func: %s\n", r);
+	builtin_func func = lookup_func(r);
+  
+        while (r != NULL) {  
+                r = strtok(NULL, c);  
+                printf("para:%s\n", r);  
+		
+		if(r != NULL){
+		   argv[argc++] = r;
+		}
+
+        }
+
+	if(func != NULL){
+		int old = dup( 1 );
+		remove(CMD_OUTPUT);
+
+		freopen(CMD_OUTPUT, "a", stdout); setbuf(stdout, NULL);
+                freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
+                func(argc, argv);
+  		
+		read_result(cmd_buff);
+
+		dup2( old, 1 );
+                printf("ccccc");
+
+		strcat(cmd_buff, endstring);
+		return cJSON_CreateString(cmd_buff);
+
+	}
+
+	free(p);
+	return NULL;
+}
+#else
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
 
-	char cmd[128];
-
 	if (!ctx->data)
 		return NULL;
 
-	sprintf(cmd, "%s%s", func_path,(char*)ctx->data);
-	printf("cmd is %s\n", cmd);
-
-	fp = popen(cmd, "r");
+	fp = popen(ctx->data, "r");
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF, fp);
@@ -96,27 +184,18 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	}
 	return NULL;
 }
+#endif
 
 cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
 
-	char cmd[128];
-
 	if (!ctx->data)
 		return NULL;
 
-	sprintf(cmd, "%s%s", func_path,(char*)ctx->data);
-	printf("cmd is %s\n", cmd);
-	system(cmd);
-
-
-	sprintf(cmd, "%s%s", func_path,"perf report");
-	printf("cmd is %s\n", cmd);
-	fp = popen(cmd, "r");
-	//system(ctx->data);
-	//fp = popen("perf report", "r");
+	system(ctx->data);
+	fp = popen("perf report", "r");
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF, fp);
@@ -131,7 +210,6 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	int i;
-
 	memset(proc_buff, 0, PROC_BUFF);
 	for (i = 0; i < my_server.procedure_count; i++) {
 		strcat(proc_buff, my_server.procedures[i].name);
