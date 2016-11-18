@@ -64,7 +64,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString(proc_buff);
 }
 
-#ifdef _BUILTIN_FUN
+#ifdef _BUILTIN_FUNC
 
 #include "sysstat.h"
 
@@ -83,16 +83,26 @@ typedef struct
 
 } builtin_func_info;
 
-static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT ] = {
+static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
 		.name = "iostat",
 		.func = COMMAND(iostat),
+	},
+	{
+		.name = "mpstat",
+		.func = COMMAND(mpstat),
+	},
+	{
+		.name = NULL,
+		.func = NULL,
 	},
 };
 
 builtin_func lookup_func(char* name){
 	int i = 0;
-	for(i = 0; i < LOOKUP_TABLE_COUNT; i++){
+	for( ; i < LOOKUP_TABLE_COUNT; i++){
+		if(lookup_table[i].name == NULL)
+			return NULL;
 		if(!strcmp(name, lookup_table[i].name))
 			return lookup_table[i].func;
 	}
@@ -106,6 +116,7 @@ int read_result(char* buf){
         int size = 0;
         if(fd){
                 size = read(fd, buf, CMD_BUFF);
+		printf("run_cmd:size %d\n", size);
                 close(fd);
 
         }
@@ -115,8 +126,7 @@ int read_result(char* buf){
 
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
-	printf("aaaaaabbbb\n");
-	//printf("run_cmd:%s\n",ctx->data);
+	printf("run_cmd:%s\n",ctx->data);
 
         if (!ctx->data)
                 return NULL;
@@ -143,17 +153,16 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
         }
 
 	if(func != NULL){
-		int old = dup( 1 );
 		remove(CMD_OUTPUT);
 
+		int old = dup(1);
 		freopen(CMD_OUTPUT, "a", stdout); setbuf(stdout, NULL);
-                freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
+                //freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
                 func(argc, argv);
-  		
+		dup2( old, 1 );
+
 		read_result(cmd_buff);
 
-		dup2( old, 1 );
-                printf("ccccc");
 
 		strcat(cmd_buff, endstring);
 		return cJSON_CreateString(cmd_buff);

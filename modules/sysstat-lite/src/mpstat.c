@@ -1536,6 +1536,8 @@ int mpstat_main(int argc, char **argv)
 	int dis_hdr = -1;
 	int rows = 23;
 	char *t;
+	
+	interval = -1, count = 0;
 
 #ifdef USE_NLS
 	/* Init National Language Support */
@@ -1564,7 +1566,7 @@ int mpstat_main(int argc, char **argv)
 	 */
 	salloc_mp_struct(cpu_nr + 1);
 
-	while (++opt < argc) {
+	while (opt < argc) {
 
 		if (!strcmp(argv[opt], "-I")) {
 			if (argv[++opt]) {
@@ -1640,6 +1642,7 @@ int mpstat_main(int argc, char **argv)
 						*(cpu_bitmap + (i >> 3)) |= 1 << (i & 0x07);
 					}
 				}
+				opt++;
 			}
 			else {
 				usage(argv[0]);
@@ -1685,6 +1688,7 @@ int mpstat_main(int argc, char **argv)
 				usage(argv[0]);
 			}
 			count = -1;
+			opt++;
 		}
 
 		else if (count <= 0) {
@@ -1697,6 +1701,7 @@ int mpstat_main(int argc, char **argv)
 			if (count < 1) {
 				usage(argv[0]);
 			}
+			opt++;
 		}
 
 		else {
