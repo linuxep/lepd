@@ -67,6 +67,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #ifdef _BUILTIN_FUNC
 
 #include "sysstat.h"
+#include "busybox.h"
 
 #include <unistd.h>  
 
@@ -91,6 +92,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
 		.name = "mpstat",
 		.func = COMMAND(mpstat),
+	},
+	{
+		.name = "free",
+		.func = COMMAND(free),
 	},
 	{
 		.name = NULL,
@@ -133,6 +138,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 	int argc = 0;  
    	char *argv[MAX_CMD_ARGV];
+	memset(argv, 0, MAX_CMD_ARGV);
 
 	char* p = malloc(strlen(ctx->data));
         strcpy(p, ctx->data);		
