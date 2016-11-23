@@ -147,8 +147,9 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
         strcpy(p, ctx->data);		
         char c[] = " ";  
         char *r = strtok(p, c);  
-  
-        printf("func: %s\n", r);
+  	argv[argc++] = r;
+        
+	printf("func: %s\n", r);
 	builtin_func func = lookup_func(r);
   
         while (r != NULL) {  
