@@ -162,6 +162,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
         }
 
+	argv[argc] = NULL;;
 	if(func != NULL){
 		remove(CMD_OUTPUT);
 

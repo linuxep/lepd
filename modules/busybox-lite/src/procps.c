@@ -311,10 +311,12 @@ procps_status_t* FAST_FUNC procps_scan(procps_status_t* sp, int flags)
 			free_procps_scan(sp);
 			return NULL;
 		}
+
  IF_FEATURE_SHOW_THREADS(got_entry:)
-		pid = bb_strtou(entry->d_name, NULL, 10);
-		if (errno)
-			continue;
+		//pid = bb_strtou(entry->d_name, NULL, 10);
+		pid = strtoull(entry->d_name, NULL, 10);
+		//if (errno)
+			//continue;
 #if ENABLE_FEATURE_SHOW_THREADS
 		if ((flags & PSSCAN_TASKS) && !sp->task_dir) {
 			/* We found another /proc/PID. Do not use it,

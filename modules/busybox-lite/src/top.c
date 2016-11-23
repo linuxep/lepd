@@ -1126,12 +1126,9 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	cpu_jif = &cur_jif;
 	cpu_prev_jif = &prev_jif;
 #endif
-
 	/* all args are options; -n NUM */
 	opt_complementary = "-"; /* options can be specified w/o dash */
 	col = getopt32(argv, "d:n:b"IF_FEATURE_TOPMEM("m"), &str_interval, &str_iterations);
-	//chensong
-	printf("col:%d, str_interval:%s,str_iterations:%s\n", col, str_interval, str_iterations);
 #if ENABLE_FEATURE_TOPMEM
 	if (col & OPT_m) /* -m (busybox specific) */
 		scan_mask = TOPMEM_MASK;
@@ -1147,7 +1144,8 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	if (col & OPT_n) {
 		if (str_iterations[0] == '-')
 			str_iterations++;
-		iterations = xatou(str_iterations);
+		//iterations = xatou(str_iterations);
+		iterations = atoi(str_iterations);
 	}
 
 	/* change to /proc */
@@ -1199,7 +1197,7 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 			if (col > LINE_BUF_SIZE - 2)
 				col = LINE_BUF_SIZE - 2;
 		}
-
+		G.lines = 50;
 		/* read process IDs & status for all the processes */
 		ntop = 0;
 		while ((p = procps_scan(p, scan_mask)) != NULL) {
@@ -1267,8 +1265,6 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 			qsort(topmem, ntop, sizeof(topmem_status_t), (void*)topmem_sort);
 		}
 #endif
-		//chensong
-		printf("lines:%d\n", G.lines);
 		if (scan_mask != TOPMEM_MASK)
 			display_process_list(G.lines, col);
 #if ENABLE_FEATURE_TOPMEM
