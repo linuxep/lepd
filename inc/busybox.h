@@ -2,4 +2,5 @@
 #define BUSYBOX_H_
 
 int free_main(int argc, char **argv);
+int top_main(int argc, char **argv);
 #endif

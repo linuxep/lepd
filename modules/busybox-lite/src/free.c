@@ -36,7 +36,7 @@ struct globals {
 #endif
 } FIX_ALIASING;
 #define G (*(struct globals*)&bb_common_bufsiz1)
-#define INIT_G() do { } while (0)
+#define INIT_G() do { memset(bb_common_bufsiz1, 0, sizeof(struct globals)); } while (0)
 
 
 static unsigned long long scale(unsigned long d)

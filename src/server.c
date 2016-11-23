@@ -98,6 +98,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(free),
 	},
 	{
+		.name = "top",
+		.func = COMMAND(top),
+	},
+	{
 		.name = NULL,
 		.func = NULL,
 	},
@@ -113,10 +117,9 @@ builtin_func lookup_func(char* name){
 	}
 	return NULL;
 }
-
 int read_result(char* buf){
-
-        memset(buf, 0, CMD_BUFF);
+        
+	memset(buf, 0, CMD_BUFF);
         int fd = open(CMD_OUTPUT, O_RDONLY);
         int size = 0;
         if(fd){
@@ -262,7 +265,7 @@ int main(void) {
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -H -n 1 -b | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");

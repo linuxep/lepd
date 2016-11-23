@@ -1706,7 +1706,7 @@ void bb_progress_update(bb_progress_t *p,
 			uoff_t totalsize) FAST_FUNC;
 
 
-extern const char *applet_name;
+//extern const char *applet_name;
 
 /* Some older linkers don't perform string merging, we used to have common strings
  * as global arrays to do it by hand. But:
