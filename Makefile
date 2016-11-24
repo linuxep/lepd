@@ -16,14 +16,14 @@ ifeq ($(ARCH), x86)
 CC=gcc
 AR=ar
 LD=ld
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_SYSTEM_FUNC
 LDFLAG :=
 else
 CROSS_COMPILE=arm-linux-gnueabi-
 CC=$(CROSS_COMPILE)gcc
 AR=$(CROSS_COMPILE)ar
 LD=$(CROSS_COMPILE)ld
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_SYSTEM_FUNC
 LDFLAG := -L$(PROJECT_EV_DIR)
 endif
 
@@ -59,9 +59,10 @@ all:$(PROJECT_ALL_OBJS)
 	$(CC) $(wildcard $(PROJECT_SRC_DIR)/*.c) $(wildcard $(PROJECT_LIB_DIR)/*.a) $(CFLAGS) -o $(PROJECT_BIN_DIR)/$(TARGETS) $(LDFLAG)
 
 prepare:
-	$(call build_libs)
 	$(MKDIR) $(PROJECT_OBJ_DIR)
+	$(MKDIR) $(PROJECT_LIB_DIR)
 	$(MKDIR) $(PROJECT_BIN_DIR)
+	$(call build_libs)
  
 $(PROJECT_OBJ_DIR)/%.o : $(PROJECT_SRC_DIR)/%.c prepare 
 	$(CC) -c $(CFLAGS) $< -o $@ 

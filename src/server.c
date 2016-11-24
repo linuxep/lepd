@@ -287,7 +287,7 @@ int main(void) {
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
