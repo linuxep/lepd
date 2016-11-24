@@ -120,6 +120,7 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 
 int main(void) {
+	daemon(0, 0);
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
 	jrpc_register_procedure(&my_server, list_all, "ListAllMethod", NULL);
