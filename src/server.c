@@ -168,15 +168,32 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 	argv[argc] = NULL;;
 	if(func != NULL){
-		remove(CMD_OUTPUT);
+		//remove(CMD_OUTPUT);
 
-		int old = dup(1);
-		freopen(CMD_OUTPUT, "w", stdout); setbuf(stdout, NULL);
+		//int old = dup(1);
+		//freopen(CMD_OUTPUT, "w", stdout); setbuf(stdout, NULL);
                 //freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
-                func(argc, argv);
-		dup2( old, 1 );
+                //func(argc, argv);
+		//dup2( old, 1 );
 		
-		read_result(cmd_buff);
+		//read_result(cmd_buff);
+		int fd[2];
+   		if(pipe(fd))   {
+      		    printf("pipe error!\n");
+      		    return NULL;
+   		}
+
+ 		fflush(stdout);
+
+
+
+		int bak_fd = dup(STDOUT_FILENO);
+   		int new_fd = dup2(fd[1], STDOUT_FILENO);
+                func(argc, argv);
+		read(fd[0], cmd_buff, CMD_BUFF);
+
+                dup2(bak_fd, new_fd);
+	
 		strcat(cmd_buff, endstring);
 		return cJSON_CreateString(cmd_buff);
 
@@ -242,6 +259,7 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 
 int main(void) {
+	daemon(0, 0);
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
 	jrpc_register_procedure(&my_server, list_all, "ListAllMethod", NULL);

@@ -323,6 +323,14 @@ static const struct option bb_null_long_options[1] = {
 const char *applet_long_options;
 #endif
 
+static const char *applet_name = "debug stuff usage";
+static void show_usage(void)
+{
+    fprintf(stderr, "Usage: %s [-p] [-r] [-t] -[x] [-n max_arg] [-s max_chars]\n",
+        applet_name);
+    exit(EXIT_FAILURE);
+}
+
 uint32_t option_mask32;
 
 uint32_t FAST_FUNC
@@ -610,6 +618,9 @@ getopt32(char **argv, const char *applet_opts, ...)
 
  error:
 	if (first_char != '!')
-		bb_show_usage();
+		show_usage();
 	return (int32_t)-1;
 }
+
+
+
