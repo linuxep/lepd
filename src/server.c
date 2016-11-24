@@ -65,7 +65,6 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 
 #ifdef _BUILTIN_FUNC
-
 #include "sysstat.h"
 #include "busybox.h"
 #include "procrank.h"
@@ -177,13 +176,15 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		//dup2( old, 1 );
 		
 		//read_result(cmd_buff);
+
+		memset(cmd_buff, 0, CMD_BUFF);
+ 		fflush(stdout);
 		int fd[2];
    		if(pipe(fd))   {
       		    printf("pipe error!\n");
       		    return NULL;
    		}
 
- 		fflush(stdout);
 
 
 
@@ -259,7 +260,7 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 
 int main(void) {
-	daemon(0, 0);
+	//daemon(0, 0);
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
 	jrpc_register_procedure(&my_server, list_all, "ListAllMethod", NULL);
@@ -287,7 +288,7 @@ int main(void) {
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
