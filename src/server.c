@@ -64,6 +64,145 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString(proc_buff);
 }
 
+#ifdef _BUILTIN_FUNC
+
+#include "sysstat.h"
+#include "busybox.h"
+#include "procrank.h"
+#include <unistd.h>  
+
+#define LOOKUP_TABLE_COUNT 32
+#define MAX_CMD_ARGV 32
+#define COMMAND(name) name##_main
+#define CMD_OUTPUT "./output.txt"
+ 
+typedef int (*builtin_func)(int argc, char **argv);
+typedef struct
+{
+	char* name;
+	builtin_func func;
+
+} builtin_func_info;
+
+static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
+	{
+		.name = "iostat",
+		.func = COMMAND(iostat),
+	},
+	{
+		.name = "mpstat",
+		.func = COMMAND(mpstat),
+	},
+	{
+		.name = "free",
+		.func = COMMAND(free),
+	},
+	{
+		.name = "top",
+		.func = COMMAND(top),
+	},
+	{
+		.name = "procrank",
+		.func = COMMAND(procrank),
+	},
+	{
+		.name = NULL,
+		.func = NULL,
+	},
+};
+
+builtin_func lookup_func(char* name){
+	int i = 0;
+	for( ; i < LOOKUP_TABLE_COUNT; i++){
+		if(lookup_table[i].name == NULL)
+			return NULL;
+		if(!strcmp(name, lookup_table[i].name))
+			return lookup_table[i].func;
+	}
+	return NULL;
+}
+int read_result(char* buf){
+        
+	memset(buf, 0, CMD_BUFF);
+        int fd = open(CMD_OUTPUT, O_RDONLY);
+        int size = 0;
+        if(fd){
+                size = read(fd, buf, CMD_BUFF);
+		printf("run_cmd:size %d\n", size);
+                close(fd);
+
+        }
+
+        return size;
+}
+
+cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+{
+	printf("run_cmd:%s\n",ctx->data);
+
+        if (!ctx->data)
+                return NULL;
+
+	int argc = 0;  
+   	char *argv[MAX_CMD_ARGV];
+	memset(argv, 0, MAX_CMD_ARGV);
+
+	char* p = malloc(strlen(ctx->data));
+        strcpy(p, ctx->data);		
+        char c[] = " ";  
+        char *r = strtok(p, c);  
+  	argv[argc++] = r;
+        
+	printf("func: %s\n", r);
+	builtin_func func = lookup_func(r);
+  
+        while (r != NULL) {  
+                r = strtok(NULL, c);  
+                printf("para:%s\n", r);  
+		
+		if(r != NULL){
+		   argv[argc++] = r;
+		}
+
+        }
+
+	argv[argc] = NULL;;
+	if(func != NULL){
+		//remove(CMD_OUTPUT);
+
+		//int old = dup(1);
+		//freopen(CMD_OUTPUT, "w", stdout); setbuf(stdout, NULL);
+                //freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
+                //func(argc, argv);
+		//dup2( old, 1 );
+		
+		//read_result(cmd_buff);
+		int fd[2];
+   		if(pipe(fd))   {
+      		    printf("pipe error!\n");
+      		    return NULL;
+   		}
+
+ 		fflush(stdout);
+
+
+
+		int bak_fd = dup(STDOUT_FILENO);
+   		int new_fd = dup2(fd[1], STDOUT_FILENO);
+                func(argc, argv);
+		read(fd[0], cmd_buff, CMD_BUFF);
+
+                dup2(bak_fd, new_fd);
+	
+		strcat(cmd_buff, endstring);
+		return cJSON_CreateString(cmd_buff);
+
+	}
+
+	free(p);
+	return NULL;
+}
+#else
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
@@ -84,6 +223,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	}
 	return NULL;
 }
+#endif
 
 cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
@@ -109,7 +249,6 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	int i;
-
 	memset(proc_buff, 0, PROC_BUFF);
 	for (i = 0; i < my_server.procedure_count; i++) {
 		strcat(proc_buff, my_server.procedures[i].name);
@@ -148,7 +287,7 @@ int main(void) {
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -H -n 1 -b | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
