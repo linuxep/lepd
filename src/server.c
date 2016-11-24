@@ -68,7 +68,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 #include "sysstat.h"
 #include "busybox.h"
-
+#include "procrank.h"
 #include <unistd.h>  
 
 #define LOOKUP_TABLE_COUNT 32
@@ -100,6 +100,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
 		.name = "top",
 		.func = COMMAND(top),
+	},
+	{
+		.name = "procrank",
+		.func = COMMAND(procrank),
 	},
 	{
 		.name = NULL,
@@ -167,14 +171,12 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		remove(CMD_OUTPUT);
 
 		int old = dup(1);
-		freopen(CMD_OUTPUT, "a", stdout); setbuf(stdout, NULL);
+		freopen(CMD_OUTPUT, "w", stdout); setbuf(stdout, NULL);
                 //freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
                 func(argc, argv);
 		dup2( old, 1 );
-
+		
 		read_result(cmd_buff);
-
-
 		strcat(cmd_buff, endstring);
 		return cJSON_CreateString(cmd_buff);
 
