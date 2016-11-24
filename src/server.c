@@ -177,15 +177,13 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		//dup2( old, 1 );
 		
 		//read_result(cmd_buff);
+		memset(cmd_buff, 0, CMD_BUFF);
+ 		fflush(stdout);
 		int fd[2];
    		if(pipe(fd))   {
       		    printf("pipe error!\n");
       		    return NULL;
    		}
-
- 		fflush(stdout);
-
-
 
 		int bak_fd = dup(STDOUT_FILENO);
    		int new_fd = dup2(fd[1], STDOUT_FILENO);
