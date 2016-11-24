@@ -59,9 +59,10 @@ all:$(PROJECT_ALL_OBJS)
 	$(CC) $(wildcard $(PROJECT_SRC_DIR)/*.c) $(wildcard $(PROJECT_LIB_DIR)/*.a) $(CFLAGS) -o $(PROJECT_BIN_DIR)/$(TARGETS) $(LDFLAG)
 
 prepare:
-	$(call build_libs)
 	$(MKDIR) $(PROJECT_OBJ_DIR)
+	$(MKDIR) $(PROJECT_LIB_DIR)
 	$(MKDIR) $(PROJECT_BIN_DIR)
+	$(call build_libs)
  
 $(PROJECT_OBJ_DIR)/%.o : $(PROJECT_SRC_DIR)/%.c prepare 
 	$(CC) -c $(CFLAGS) $< -o $@ 

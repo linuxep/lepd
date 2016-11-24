@@ -621,6 +621,3 @@ getopt32(char **argv, const char *applet_opts, ...)
 		show_usage();
 	return (int32_t)-1;
 }
-
-
-
