@@ -111,6 +111,14 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(iopp),
 	},
 	{
+		.name = "df",
+		.func = COMMAND(df),
+	},
+	{
+		.name = "dmesg",
+		.func = COMMAND(dmesg),
+	},
+	{
 		.name = NULL,
 		.func = NULL,
 	},
@@ -193,7 +201,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		int bak_fd = dup(STDOUT_FILENO);
    		int new_fd = dup2(fd[1], STDOUT_FILENO);
                 func(argc, argv);
-		read(fd[0], cmd_buff, CMD_BUFF);
+		read(fd[0], cmd_buff, CMD_BUFF - 1);
 
                 dup2(bak_fd, new_fd);
 	
