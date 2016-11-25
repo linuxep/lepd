@@ -48,11 +48,11 @@ root@bob-VirtualBox:~#  git clone git@www.linuxep.com:repo/lep/lepd lepd-src
 
 For X86（电脑需要安装libev-dev库）:
 
-root@bob-VirtualBox:~/lepd-src# ./build_x86.sh 
+root@bob-VirtualBox:~/lepd-src# make ARCH=x86 
 
 For ARM（电脑需要安装arm-linux-gnueabi-gcc）:
 
-root@bob-VirtualBox:~/lepd-src# ./build_arm.sh 
+root@bob-VirtualBox:~/lepd-src# make ARCH=arm 
 
 ## 如何运行
 

@@ -69,6 +69,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #include "sysstat.h"
 #include "busybox.h"
 #include "procrank.h"
+#include "iopp.h"
 #include <unistd.h>  
 
 #define LOOKUP_TABLE_COUNT 32
@@ -104,6 +105,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
 		.name = "procrank",
 		.func = COMMAND(procrank),
+	},
+	{
+		.name = "iopp",
+		.func = COMMAND(iopp),
 	},
 	{
 		.name = NULL,
@@ -279,15 +284,16 @@ int main(void) {
 	/*********************************************
 	 *
 	 * ****************************************/
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIopp", "iopp");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdFree", "free");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdProcrank", "procrank");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIostat", "iostat -d -x -k");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDf", "df -h");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
