@@ -21,7 +21,7 @@ CFLAGS = -I$(DIR_INC) -Wall -static -D_LARGEFILE64_SOURCE
  
 ${TARGET}:${OBJ}
 	$(AR) rc $@ $^ 
-	@mv $(TARGET) ../../libs
+	@mv $(TARGET) ../../../libs/
 ${DIR_OBJ}/%.o:${DIR_SRC}/%.c
 	@mkdir -p $(DIR_OBJ)
 	$(CC) $(CFLAGS) -c  $< -o $@
