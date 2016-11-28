@@ -20,6 +20,11 @@
 #include <signal.h>
 #include "jsonrpc-c.h"
 
+#ifdef DEBUG
+#define DEBUG_PRINT(fmt, args...)    printf(fmt, ## args)
+#else
+#define DEBUG_PRINT(fmt, args...)
+#endif
 
 #define PORT 12307  // the port users will be connecting to
 #define PROC_BUFF 8192
@@ -48,7 +53,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 		return NULL;
 
 	snprintf(proc_path, 50, "/proc/%s", ctx->data);
-	printf("read_proc: path: %s\n", proc_path);
+	DEBUG_PRINT("read_proc: path: %s\n", proc_path);
 
 	fd = open(proc_path, O_RDONLY);
 	if (fd < 0) {
@@ -59,7 +64,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	memset(proc_buff, 0, PROC_BUFF);
 	size = read(fd, proc_buff, PROC_BUFF);
 	close(fd);
-	printf("read %d bytes from %s\n", size, proc_path);
+	DEBUG_PRINT("read %d bytes from %s\n", size, proc_path);
 	strcat(proc_buff, endstring);
 	return cJSON_CreateString(proc_buff);
 }
@@ -141,7 +146,7 @@ int read_result(char* buf){
         int size = 0;
         if(fd){
                 size = read(fd, buf, CMD_BUFF);
-		printf("run_cmd:size %d\n", size);
+		DEBUG_PRINT("run_cmd:size %d\n", size);
                 close(fd);
 
         }
@@ -151,7 +156,7 @@ int read_result(char* buf){
 
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
-	printf("run_cmd:%s\n",ctx->data);
+	DEBUG_PRINT("run_cmd:%s\n",ctx->data);
 
         if (!ctx->data)
                 return NULL;
@@ -166,12 +171,12 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
         char *r = strtok(p, c);  
   	argv[argc++] = r;
         
-	printf("func: %s\n", r);
+	DEBUG_PRINT("func: %s\n", r);
 	builtin_func func = lookup_func(r);
   
         while (r != NULL) {  
                 r = strtok(NULL, c);  
-                printf("para:%s\n", r);  
+                DEBUG_PRINT("para:%s\n", r);  
 		
 		if(r != NULL){
 		   argv[argc++] = r;
@@ -226,7 +231,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF, fp);
-		printf("run_cmd:size %d:%s\n", size, ctx->data);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
 		strcat(cmd_buff, endstring);
@@ -249,7 +254,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF, fp);
-		printf("run_cmd:size %d:%s\n", size, ctx->data);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
 		strcat(cmd_buff, endstring);
@@ -269,8 +274,13 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString(proc_buff);
 }
 
-int main(void) {
-	daemon(0, 0);
+int main(int argc, char **argv)
+{
+	if ( (argc == 2) && (strcmp(argv[1], "--debug") == 0) ){
+			/* Enable debugging. */
+	} else
+		daemon(0, 0);
+
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
 	jrpc_register_procedure(&my_server, list_all, "ListAllMethod", NULL);
