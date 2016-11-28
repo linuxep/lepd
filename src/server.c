@@ -75,6 +75,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #include "busybox.h"
 #include "procrank.h"
 #include "iopp.h"
+#include "ps.h"
 #include <unistd.h>  
 
 #define LOOKUP_TABLE_COUNT 32
@@ -91,6 +92,10 @@ typedef struct
 } builtin_func_info;
 
 static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
+	{
+		.name = "ps",
+		.func = COMMAND(ps),
+	},
 	{
 		.name = "iostat",
 		.func = COMMAND(iostat),
@@ -308,7 +313,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");

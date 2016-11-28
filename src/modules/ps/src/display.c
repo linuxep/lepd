@@ -29,15 +29,15 @@
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 
-#include "../proc/alloc.h"
-#include "../proc/readproc.h"
-#include "../proc/sig.h"
-#include "../proc/sysinfo.h"
-#include "../proc/version.h"
-#include "../proc/wchan.h"
+#include "alloc.h"
+#include "readproc.h"
+#include "sig.h"
+#include "sysinfo.h"
+#include "version.h"
+#include "wchan.h"
 
-#include "../include/fileutils.h"
-#include "../include/c.h"
+#include "fileutils.h"
+#include "c.h"
 #include "common.h"
 
 #ifndef SIGCHLD
@@ -607,8 +607,9 @@ static void arg_check_conflicts(void)
 }
 
 /***** no comment */
-int main(int argc, char *argv[]){
-  atexit(close_stdout);
+int ps_main(int argc, char *argv[]){
+	reset_sortformat();
+  //atexit(close_stdout);
   myname = strrchr(*argv, '/');
   if (myname) ++myname; else myname = *argv;
 

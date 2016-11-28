@@ -824,12 +824,14 @@ static void fill_environ_cvt (const char* directory, proc_t *restrict p) {
     p->environ = vectorize_this_str(dst_buffer[0] ? dst_buffer : "-");
 }
 
+#if 0
 // warning: interface may change
 int read_cmdline(char *restrict const dst, unsigned sz, unsigned pid) {
     char path[PROCPATHLEN];
     snprintf(path, sizeof(path), "/proc/%u", pid);
     return read_unvectored(dst, sz, path, "cmdline", ' ');
 }
+#endif
 
 
     // Provide the means to value proc_t.lxcname (perhaps only with "-") while

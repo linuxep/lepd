@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../proc/procps.h"
-#include "../proc/readproc.h"
+#include "procps.h"
+#include "readproc.h"
 
 #include "common.h"
 

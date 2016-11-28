@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "../proc/alloc.h"
+#include "alloc.h"
 
 #include "common.h"
 #include "c.h"

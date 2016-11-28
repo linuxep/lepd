@@ -49,7 +49,7 @@ void *xcalloc(unsigned int size) {
     }
     return p;
 }
-
+#if 0
 void *xmalloc(size_t size) {
     void *p;
 
@@ -75,7 +75,6 @@ void *xrealloc(void *oldp, unsigned int size) {
     }
     return(p);
 }
-
 char *xstrdup(const char *str) {
     char *p = NULL;
 
@@ -90,3 +89,4 @@ char *xstrdup(const char *str) {
     }
     return(p);
 }
+#endif

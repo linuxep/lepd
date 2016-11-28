@@ -18,7 +18,7 @@
 #ifndef PROCPS_PRIVATE_H
 #define PROCPS_PRIVATE_H
 
-#include <proc/procps.h>
+#include <procps.h>
 
 #define PROCPS_EXPORT __attribute__ ((visibility("default")))
 

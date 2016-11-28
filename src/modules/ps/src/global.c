@@ -31,11 +31,11 @@
 #include <sys/sysmacros.h>
 #include <sys/types.h>
 
-#include "../proc/wchan.h"
-#include "../proc/version.h"
-#include "../proc/sysinfo.h"
+#include "wchan.h"
+#include "version.h"
+#include "sysinfo.h"
 
-#include "../include/c.h"
+#include "c.h"
 #include "common.h"
 
 #ifndef __GNU_LIBRARY__
@@ -471,7 +471,7 @@ void self_info(void){
     sysv_l_format  ? sysv_l_format  : "(none)"
   );
 
-  fprintf(stderr, "%s version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
+  //fprintf(stderr, "%s version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
   fprintf(stderr, "Linux version %d.%d.%d\n",
     LINUX_VERSION_MAJOR(linux_version_code),
     LINUX_VERSION_MINOR(linux_version_code),

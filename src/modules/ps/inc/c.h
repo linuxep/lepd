@@ -157,6 +157,6 @@ static void error_at_line(int status, int errnum, const char *filename,
 #define USAGE_VERSION    _(" -V, --version  output version information and exit\n")
 #define USAGE_MAN_TAIL(_man)   _("\nFor more details see %s.\n"), _man
 
-#define PROCPS_NG_VERSION _("%s from %s\n"), program_invocation_short_name, PACKAGE_STRING
+#define PROCPS_NG_VERSION _("%s from %s\n"), program_invocation_short_name, "lepd-ps"
 
 #endif /* PROCPS_NG_C_H */

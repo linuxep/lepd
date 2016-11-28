@@ -25,8 +25,8 @@
 
 #include <sys/types.h>
 
-#include "../proc/readproc.h"
-#include "../proc/sysinfo.h"
+#include "readproc.h"
+#include "sysinfo.h"
 
 #include "common.h"
 

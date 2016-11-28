@@ -64,12 +64,12 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 
-#include "../proc/readproc.h"
-#include "../proc/sysinfo.h"
-#include "../proc/wchan.h"
-#include "../proc/procps.h"
-#include "../proc/devname.h"
-#include "../proc/escape.h"
+#include "readproc.h"
+#include "sysinfo.h"
+#include "wchan.h"
+#include "procps.h"
+#include "devname.h"
+#include "escape.h"
 
 #include "common.h"
 

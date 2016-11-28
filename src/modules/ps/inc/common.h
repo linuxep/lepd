@@ -12,13 +12,13 @@
 #ifndef PROCPS_PS_H
 #define PROCPS_PS_H
 
-#include "../include/nls.h"
-#include "../proc/procps.h"
-#include "../proc/escape.h"
-#include "../proc/readproc.h"
+#include "nls.h"
+#include "procps.h"
+#include "escape.h"
+#include "readproc.h"
 
 #if 0
-#define trace(...) printf(## __VA_ARGS__)
+#define trace(...) fprintf(stderr,## __VA_ARGS__)
 #else
 #define trace(...)
 #endif
