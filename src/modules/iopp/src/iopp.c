@@ -219,6 +219,7 @@ insert_ion(struct io_node *ion)
 	return head;
 }
 
+#define MAX_LINES 50
 void
 get_stats()
 {
@@ -243,6 +244,7 @@ get_stats()
 		printf("%5s %8s %8s %8s %8s %8s %8s %8s %s\n", "pid", "rchar", "wchar",
 				"syscr", "syscw", "rbytes", "wbytes", "cwbytes", "command");
 
+	int nLines = 0;
 	/* Loop through the process table and display a line per pid. */
 	while ((ent = readdir(dir)) != NULL)
 	{
@@ -376,6 +378,7 @@ get_stats()
 			printf("%5d %8d %8d %8d %8d %8d %8d %8d %s\n",
 					ion->pid, 0, 0, 0, 0, 0, 0, 0, ion->command);
 
+		if(++nLines >= MAX_LINES) break;
 		upsert_data(ion);
 	}
 	closedir(dir);
@@ -456,7 +459,7 @@ iopp_main(int argc, char *argv[])
 	int count = 0;
 	int max_count = 1;
 
-	while (1)
+	while (0)
 	{
 		int option_index = 0;
 		static struct option long_options[] = {

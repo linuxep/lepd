@@ -18,14 +18,14 @@ ifeq ($(ARCH), x86)
 CC=gcc
 AR=ar
 LD=ld
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILDIN_FUNC
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC
 LDFLAG :=
 else
 CROSS_COMPILE=arm-linux-gnueabi-
 CC=$(CROSS_COMPILE)gcc
 AR=$(CROSS_COMPILE)ar
 LD=$(CROSS_COMPILE)ld
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILDIN_FUNC
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC
 LDFLAG := -L$(PROJECT_EV_DIR)
 endif
 

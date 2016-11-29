@@ -532,6 +532,7 @@ static int want_this_proc_nop(proc_t *dummy){
 #endif
 
 /***** sorted or forest */
+#define MAX_LINES 50
 static void fancy_spew(void){
   proc_data_t *pd = NULL;
   PROCTAB *restrict ptp;
@@ -548,7 +549,9 @@ static void fancy_spew(void){
   }else{
     pd = readproctab2(want_this_proc_pcpu, (void*)0xdeadbeaful, ptp);
   }
-  n = pd->n;
+  //n = pd->n;
+  n = pd->n < MAX_LINES ? pd->n : MAX_LINES;
+
   processes = pd->tab;
 
   if(!n) return;  /* no processes */

@@ -119,6 +119,7 @@ void print_mem_info() {
             mem[0], mem[1], mem[2], mem[3], mem[4], mem[5]);
 }
 
+#define MAX_LINES 50
 int procrank_main(int argc, char *argv[]) {
     pm_kernel_t *ker;
     pm_process_t *proc;
@@ -256,6 +257,8 @@ int procrank_main(int argc, char *argv[]) {
     total_pss = 0;
     total_uss = 0;
     total_swap = 0;
+
+    num_procs = num_procs < MAX_LINES ? num_procs : MAX_LINES;
 
     for (i = 0; i < num_procs; i++) {
         if (getprocname(procs[i]->pid, cmdline, (int)sizeof(cmdline)) < 0) {

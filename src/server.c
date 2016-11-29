@@ -20,6 +20,7 @@
 #include <signal.h>
 #include "jsonrpc-c.h"
 
+#define DEBUG
 #ifdef DEBUG
 #define DEBUG_PRINT(fmt, args...)    printf(fmt, ## args)
 #else
@@ -161,7 +162,7 @@ int read_result(char* buf){
 
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
-	DEBUG_PRINT("run_cmd:%s\n",ctx->data);
+	DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
 
         if (!ctx->data)
                 return NULL;
@@ -181,7 +182,6 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
   
         while (r != NULL) {  
                 r = strtok(NULL, c);  
-                DEBUG_PRINT("para:%s\n", r);  
 		
 		if(r != NULL){
 		   argv[argc++] = r;
@@ -191,30 +191,23 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 	argv[argc] = NULL;;
 	if(func != NULL){
-		//remove(CMD_OUTPUT);
 
-		//int old = dup(1);
-		//freopen(CMD_OUTPUT, "w", stdout); setbuf(stdout, NULL);
-                //freopen(CMD_OUTPUT, "a", stderr); setbuf(stderr, NULL);
-                //func(argc, argv);
-		//dup2( old, 1 );
-		
-		//read_result(cmd_buff);
 		memset(cmd_buff, 0, CMD_BUFF);
  		fflush(stdout);
 		int fd[2];
    		if(pipe(fd))   {
-      		    printf("pipe error!\n");
+      		    DEBUG_PRINT("pipe error!\n");
       		    return NULL;
    		}
 
 		int bak_fd = dup(STDOUT_FILENO);
    		int new_fd = dup2(fd[1], STDOUT_FILENO);
                 func(argc, argv);
-		read(fd[0], cmd_buff, CMD_BUFF - 1);
+		int size = read(fd[0], cmd_buff, CMD_BUFF- strlen(endstring) - 1);
 
                 dup2(bak_fd, new_fd);
 	
+		DEBUG_PRINT("read size:%d\n", size);
 		strcat(cmd_buff, endstring);
 		return cJSON_CreateString(cmd_buff);
 
@@ -235,7 +228,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	fp = popen(ctx->data, "r");
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
-		size = fread(cmd_buff, 1, CMD_BUFF, fp);
+		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1 , fp);
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
@@ -258,7 +251,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	fp = popen("perf report", "r");
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
-		size = fread(cmd_buff, 1, CMD_BUFF, fp);
+		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
@@ -315,7 +308,7 @@ int main(int argc, char **argv)
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDf", "df -h");
