@@ -193,7 +193,10 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		int size = read(fd[0], cmd_buff, CMD_BUFF- strlen(endstring) - 1);
 
                 dup2(bak_fd, new_fd);
-	
+		close(fd[0]);
+		close(fd[1]);
+		close(bak_fd);
+		//close(new_fd);
 		DEBUG_PRINT("read size:%d\n", size);
 		strcat(cmd_buff, endstring);
 		return cJSON_CreateString(cmd_buff);
