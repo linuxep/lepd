@@ -70,7 +70,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString(proc_buff);
 }
 
-#ifdef _BUILTIN_FUNC
+//#ifdef _BUILTIN_FUNC
 
 #include "sysstat.h"
 #include "busybox.h"
@@ -145,22 +145,9 @@ builtin_func lookup_func(char* name){
 	}
 	return NULL;
 }
-int read_result(char* buf){
-        
-	memset(buf, 0, CMD_BUFF);
-        int fd = open(CMD_OUTPUT, O_RDONLY);
-        int size = 0;
-        if(fd){
-                size = read(fd, buf, CMD_BUFF);
-		DEBUG_PRINT("run_cmd:size %d\n", size);
-                close(fd);
 
-        }
 
-        return size;
-}
-
-cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
 
@@ -216,7 +203,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	free(p);
 	return NULL;
 }
-#else
+//#else
 cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
@@ -237,7 +224,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	}
 	return NULL;
 }
-#endif
+//#endif
 
 cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
@@ -246,7 +233,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 	if (!ctx->data)
 		return NULL;
-
+	DEBUG_PRINT("run_perf_cmd\n");
 	system(ctx->data);
 	fp = popen("perf report", "r");
 	if (fp) {
@@ -300,19 +287,20 @@ int main(int argc, char **argv)
 	/*********************************************
 	 *
 	 * ****************************************/
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIopp", "iopp");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdFree", "free");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdProcrank", "procrank");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIostat", "iostat -d -x -k");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdFree", "free");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDmesg", "dmesg");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdDf", "df -h");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDmesg", "dmesg");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
+
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
 	jrpc_server_run(&my_server);
