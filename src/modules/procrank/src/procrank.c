@@ -336,6 +336,7 @@ int procrank_main(int argc, char *argv[]) {
     printf("\n");
     print_mem_info();
 
+    pm_kernel_destroy(ker);
     return 0;
 }
 

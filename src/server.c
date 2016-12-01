@@ -158,7 +158,8 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
    	char *argv[MAX_CMD_ARGV];
 	memset(argv, 0, MAX_CMD_ARGV);
 
-	char* p = malloc(strlen(ctx->data));
+	char* p = malloc(strlen(ctx->data) + 1);
+	memset(p, 0, strlen(ctx->data) + 1);
         strcpy(p, ctx->data);		
         char c[] = " ";  
         char *r = strtok(p, c);  
@@ -296,7 +297,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
-	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
