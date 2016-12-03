@@ -620,6 +620,7 @@ int ps_main(int argc, char *argv[]){
   bindtextdomain(PACKAGE, LOCALEDIR);
   textdomain(PACKAGE);
 
+#if 0
 #ifdef DEBUG
   init_stack_trace(argv[0]);
 #else
@@ -645,6 +646,7 @@ int ps_main(int argc, char *argv[]){
       ;
     }
   } while (0);
+#endif
 #endif
 
   reset_global();  /* must be before parser */
