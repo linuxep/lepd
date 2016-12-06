@@ -2,6 +2,7 @@ PROJECT_TOP_DIR=$(PWD)
 PROJECT_OBJ_DIR=$(PROJECT_TOP_DIR)/.objs
 PROJECT_LIB_DIR=$(PROJECT_TOP_DIR)/libs
 PROJECT_EV_DIR=$(PROJECT_LIB_DIR)/arm-libev
+PROJECT_PREBUILT_DIR=$(PROJECT_TOP_DIR)/prebuilt-binaries
 
 PROJECT_INC_DIR=$(PROJECT_TOP_DIR)/include
 PROJECT_SRC_DIR=$(PROJECT_TOP_DIR)/src
@@ -76,3 +77,9 @@ clean:
 	-rm $(PROJECT_LIB_DIR)/*
 	$(call clean_libs)
 
+install:
+ifeq ($(ARCH), x86)
+	cp $(TARGETS) $(PROJECT_PREBUILT_DIR)/x86_lepd
+else
+	cp $(TARGETS) $(PROJECT_PREBUILT_DIR)/arm_lepd
+endif
