@@ -75,7 +75,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #include "sysstat.h"
 #include "busybox.h"
 #include "procrank.h"
-#include "iopp.h"
+#include "iotop.h"
 #include "ps.h"
 #include <unistd.h>  
 
@@ -118,8 +118,8 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(procrank),
 	},
 	{
-		.name = "iopp",
-		.func = COMMAND(iopp),
+		.name = "iotop",
+		.func = COMMAND(iotop),
 	},
 	{
 		.name = "df",
@@ -292,7 +292,8 @@ int main(int argc, char **argv)
 	/*********************************************
 	 *
 	 * ****************************************/
-	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIotop", "iotop");
+	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdFree", "free");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
