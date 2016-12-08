@@ -200,6 +200,7 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		//close(new_fd);
 		DEBUG_PRINT("read size:%d\n", size);
 		strcat(cmd_buff, endstring);
+	        free(p);
 		return cJSON_CreateString(cmd_buff);
 
 	}

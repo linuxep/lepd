@@ -594,10 +594,70 @@ int defer_sf_option(const char *arg, int source){
 }
 
 /***** Since ps is not long-lived, the memory leak can be ignored. ******/
+void free_sf_list(){
+
+	static sf_node * psf = NULL;
+
+	while(sf_list){
+		//free format_node
+		format_node * pfn = NULL;
+		while(sf_list->f_cooked){
+			pfn = sf_list->f_cooked;
+			sf_list->f_cooked = sf_list->f_cooked->next;
+			free(pfn);
+		}
+
+	    sort_node   * psn = NULL;
+		while(sf_list->s_cooked){
+			psn = sf_list->s_cooked;
+			sf_list->s_cooked = sf_list->s_cooked->next;
+			free(psn);
+		}
+		
+		psf = sf_list;
+		sf_list = sf_list->next;
+		free(psf);
+	}
+
+	sf_list = NULL;
+}
+
+void free_format_list(){
+	if(format_list == (format_node *)0xdeadbeef) return;
+
+	format_node * pfn = NULL;
+	while(format_list){
+		pfn = format_list;
+		format_list = format_list->next;
+		free(pfn);
+	}
+}
+
+void free_sort_list(){
+	if(sort_list == (format_node *)0xdeadbeef) return;
+
+	sort_node * psn = NULL;
+	while(sort_list){
+		psn = sort_list;
+		sort_list = sort_list->next;
+		free(psn);
+	}
+
+		
+}
+
+
+
 void reset_sortformat(void){
-  sf_list = NULL;          /* deferred sorting and formatting */
-  format_list = NULL;      /* digested formatting options */
-  sort_list = NULL;        /* digested sorting options (redundant?) */
+  //sf_list = NULL;          /* deferred sorting and formatting */
+  //format_list = NULL;      /* digested formatting options */
+  //sort_list = NULL;        /* digested sorting options (redundant?) */
+
+  //free memory alloced before
+  free_sf_list();
+  free_format_list();
+  free_sort_list();
+  
   have_gnu_sort = 0;
   already_parsed_sort = 0;
   already_parsed_format = 0;

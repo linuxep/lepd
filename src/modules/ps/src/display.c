@@ -403,7 +403,7 @@ static void simple_spew(void){
     break;
   }
   closeproc(ptp);
-
+  freeproc(NULL);
   if (pidlist) free(pidlist);
 }
 
@@ -560,6 +560,7 @@ static void fancy_spew(void){
   if(forest_type) show_forest(n);
   else show_proc_array(ptp,n);
   closeproc(ptp);
+  freeproc(*processes);
 }
 
 static void arg_check_conflicts(void)
@@ -611,7 +612,8 @@ static void arg_check_conflicts(void)
 
 /***** no comment */
 int ps_main(int argc, char *argv[]){
-	reset_sortformat();
+
+  //reset_sortformat();	
   //atexit(close_stdout);
   myname = strrchr(*argv, '/');
   if (myname) ++myname; else myname = *argv;
@@ -667,5 +669,7 @@ int ps_main(int argc, char *argv[]){
   if(forest_type || sort_list) fancy_spew(); /* sort or forest */
   else simple_spew(); /* no sort, no forest */
   show_one_proc((proc_t *)-1,format_list); /* no output yet? */
+
+  reset_sortformat();	
   return 0;
 }

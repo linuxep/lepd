@@ -976,23 +976,23 @@ static proc_t* simple_readproc(PROCTAB *restrict const PT, proc_t *restrict cons
     }
 
     if (unlikely(flags & PROC_FILLENV)) {       // read /proc/#/environ
-        if (flags & PROC_EDITENVRCVT)
-            fill_environ_cvt(path, p);
-        else
+        //if (flags & PROC_EDITENVRCVT)
+          //  fill_environ_cvt(path, p);
+        //else
             p->environ = file2strvec(path, "environ");
     }
 
     if (flags & (PROC_FILLCOM|PROC_FILLARG)) {  // read /proc/#/cmdline
-        if (flags & PROC_EDITCMDLCVT)
-            fill_cmdline_cvt(path, p);
-        else
+        //if (flags & PROC_EDITCMDLCVT)
+          //  fill_cmdline_cvt(path, p);
+        //else
             p->cmdline = file2strvec(path, "cmdline");
     }
 
     if ((flags & PROC_FILLCGROUP)) {            // read /proc/#/cgroup
-        if (flags & PROC_EDITCGRPCVT)
-            fill_cgroup_cvt(path, p);
-        else
+        //if (flags & PROC_EDITCGRPCVT)
+          //  fill_cgroup_cvt(path, p);
+        //else
             p->cgroup = file2strvec(path, "cgroup");
     }
 
