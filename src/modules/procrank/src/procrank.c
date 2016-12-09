@@ -258,7 +258,7 @@ int procrank_main(int argc, char *argv[]) {
     total_uss = 0;
     total_swap = 0;
 
-    num_procs = num_procs < MAX_LINES ? num_procs : MAX_LINES;
+    //num_procs = num_procs < MAX_LINES ? num_procs : MAX_LINES;
 
     for (i = 0; i < num_procs; i++) {
         if (getprocname(procs[i]->pid, cmdline, (int)sizeof(cmdline)) < 0) {
@@ -269,6 +269,12 @@ int procrank_main(int argc, char *argv[]) {
             free(procs[i]);
             continue;
         }
+
+	//we don't need so much data, but we have to free the memory
+	if(i > MAX_LINES){
+            free(procs[i]);
+            continue;
+	}
 
         total_pss += procs[i]->usage.pss;
         total_uss += procs[i]->usage.uss;
