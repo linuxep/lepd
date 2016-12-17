@@ -206,6 +206,71 @@ static void connection_cb(struct ev_loop *loop, ev_io *w, int revents) {
 
 }
 
+// Make the code work with both the old (ev_loop/ev_unloop)
+// and new (ev_run/ev_break) versions of libev.
+#ifdef EVUNLOOP_ALL
+  #define EV_RUN ev_loop
+  #define EV_BREAK ev_unloop
+  #define EVBREAK_ALL EVUNLOOP_ALL
+#else
+  #define EV_RUN ev_run
+  #define EV_BREAK ev_break
+#endif
+
+#ifdef _MULTITHREAD
+static void rpccmd_loop_thread(void *arg) {
+	struct jrpc_connection *connection_watcher = (struct jrpc_connection *)arg;
+	struct ev_loop* loop2 = ev_loop_new(0);
+
+	printf("in thread:%s\n", __func__);
+	if (loop2) {
+		ev_io_start(loop2, &connection_watcher->io);
+		printf("in thread:%s 22\n", __func__);
+		EV_RUN(loop2, 0);
+		printf("in thread:%s 33\n", __func__);
+	}
+	//free(connection_watcher->buffer);
+	//free(connection_watcher);
+	ev_loop_destroy(loop2);
+}
+
+static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
+	printf("accept cb..\n");
+	char s[INET6_ADDRSTRLEN];
+	struct jrpc_connection *connection_watcher;
+	connection_watcher = malloc(sizeof(struct jrpc_connection));
+	struct sockaddr_storage their_addr; // connector's address information
+	socklen_t sin_size;
+	sin_size = sizeof their_addr;
+	connection_watcher->fd = accept(w->fd, (struct sockaddr *) &their_addr,
+			&sin_size);
+	if (connection_watcher->fd == -1) {
+		perror("accept");
+		free(connection_watcher);
+	} else {
+		if (((struct jrpc_server *) w->data)->debug_level) {
+			inet_ntop(their_addr.ss_family,
+					get_in_addr((struct sockaddr *) &their_addr), s, sizeof s);
+			printf("server: got connection from %s\n", s);
+		}
+
+		ev_io_init(&connection_watcher->io, connection_cb,
+				connection_watcher->fd, EV_READ);
+		//copy pointer to struct jrpc_server
+		connection_watcher->io.data = w->data;
+		connection_watcher->buffer_size = 1500;
+		connection_watcher->buffer = malloc(1500);
+		memset(connection_watcher->buffer, 0, 1500);
+		connection_watcher->pos = 0;
+		//copy debug_level, struct jrpc_connection has no pointer to struct jrpc_server
+		connection_watcher->debug_level =
+				((struct jrpc_server *) w->data)->debug_level;
+		pthread_t thread;
+		pthread_create(&thread, NULL, rpccmd_loop_thread, connection_watcher);
+		printf("thread create okay\n");
+	}
+}
+#else
 static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
 	char s[INET6_ADDRSTRLEN];
 	struct jrpc_connection *connection_watcher;
@@ -238,6 +303,7 @@ static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
 		ev_io_start(loop, &connection_watcher->io);
 	}
 }
+#endif
 
 int jrpc_server_init(struct jrpc_server *server, int port_number) {
     loop = EV_DEFAULT;
@@ -329,19 +395,10 @@ static int __jrpc_server_start(struct jrpc_server *server) {
 	return 0;
 }
 
-// Make the code work with both the old (ev_loop/ev_unloop)
-// and new (ev_run/ev_break) versions of libev.
-#ifdef EVUNLOOP_ALL
-  #define EV_RUN ev_loop
-  #define EV_BREAK ev_unloop
-  #define EVBREAK_ALL EVUNLOOP_ALL
-#else
-  #define EV_RUN ev_run
-  #define EV_BREAK ev_break
-#endif
-
 void jrpc_server_run(struct jrpc_server *server){
+	printf("in func:%s\n", __func__);
 	EV_RUN(server->loop, 0);
+	printf("in func:%s 22\n", __func__);
 }
 
 int jrpc_server_stop(struct jrpc_server *server) {

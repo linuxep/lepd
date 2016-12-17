@@ -29,10 +29,10 @@
 
 #define PORT 12307  // the port users will be connecting to
 #define PROC_BUFF 8192
-unsigned char proc_buff[PROC_BUFF];
+//unsigned char proc_buff[PROC_BUFF];
 
 #define CMD_BUFF 8192
-unsigned char cmd_buff[CMD_BUFF];
+//unsigned char cmd_buff[CMD_BUFF];
 
 struct jrpc_server my_server;
 
@@ -48,6 +48,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	int fd;
 	int size;
 	cJSON *result;
+	unsigned char proc_buff[PROC_BUFF];
 	unsigned char proc_path[50];
 
 	if (!ctx->data)
@@ -150,6 +151,7 @@ builtin_func lookup_func(char* name){
 cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
+	unsigned char cmd_buff[CMD_BUFF];
 
         if (!ctx->data)
                 return NULL;
@@ -213,6 +215,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
+	unsigned char cmd_buff[CMD_BUFF];
 
 	if (!ctx->data)
 		return NULL;
@@ -235,6 +238,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
+	unsigned char cmd_buff[CMD_BUFF];
 
 	if (!ctx->data)
 		return NULL;
@@ -255,6 +259,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	int i;
+	unsigned char proc_buff[CMD_BUFF];
 	memset(proc_buff, 0, PROC_BUFF);
 	for (i = 0; i < my_server.procedure_count; i++) {
 		strcat(proc_buff, my_server.procedures[i].name);

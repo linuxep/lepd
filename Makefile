@@ -20,7 +20,7 @@ ifeq ($(ARCH), x86)
 CC=gcc
 AR=ar
 LD=ld
-CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC
+CFLAGS := -lev -lm -lrt -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC -D_MULTITHREAD -lpthread
 LDFLAG :=
 else
 CROSS_COMPILE=arm-linux-gnueabi-
