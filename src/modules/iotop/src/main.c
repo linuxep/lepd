@@ -176,7 +176,7 @@ sig_handler(int signo)
 }
 
 int
-iotop_main(int argc, char *argv[])
+iotop_main(int argc, char *argv[], int fd)
 {
     progname = argv[0];
 
@@ -209,7 +209,7 @@ iotop_main(int argc, char *argv[])
     do
     {
         cs = fetch_data(config.f.processes, filter1);
-        view(cs, ps);
+        view(cs, ps, fd);
 
         if (ps)
             free_stats_chain(ps);

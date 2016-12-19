@@ -85,7 +85,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #define COMMAND(name) name##_main
 #define CMD_OUTPUT "./output.txt"
  
-typedef int (*builtin_func)(int argc, char **argv);
+typedef int (*builtin_func)(int argc, char **argv, int fd);
 typedef struct
 {
 	char* name;
@@ -190,15 +190,15 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
       		    return NULL;
    		}
 
-		int bak_fd = dup(STDOUT_FILENO);
-   		int new_fd = dup2(fd[1], STDOUT_FILENO);
-                func(argc, argv);
+		//int bak_fd = dup(STDOUT_FILENO);
+   		//int new_fd = dup2(fd[1], STDOUT_FILENO);
+                func(argc, argv, fd[1]);
 		int size = read(fd[0], cmd_buff, CMD_BUFF- strlen(endstring) - 1);
 
-                dup2(bak_fd, new_fd);
+                //dup2(bak_fd, new_fd);
 		close(fd[0]);
 		close(fd[1]);
-		close(bak_fd);
+		//close(bak_fd);
 		//close(new_fd);
 		DEBUG_PRINT("read size:%d\n", size);
 		strcat(cmd_buff, endstring);

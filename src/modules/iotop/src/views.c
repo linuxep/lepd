@@ -145,7 +145,7 @@ void humanize_val(double *value, char **str)
 }
 
 #define MAX_LINES 50
-void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
+void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int fd)
 {
     int diff_len = 0;
 
@@ -159,8 +159,9 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
 
     humanize_val(&total_read, &str_read);
     humanize_val(&total_write, &str_write);
+    FILE *fp = fdopen(fd, "w");
 
-    printf(HEADER_FORMAT,
+    fprintf(fp,HEADER_FORMAT,
            total_read,
            str_read,
            total_write,
@@ -170,13 +171,13 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
     if (config.f.timestamp)
     {
         time_t t = time(NULL);
-        printf(" | %s", ctime(&t));
+        fprintf(fp ," | %s", ctime(&t));
     }
     else
-        printf("\n");
+        fprintf(fp,"\n");
 
     if (!config.f.quite)
-        printf("%5s %4s %8s %11s %11s %6s %6s %s\n",
+        fprintf(fp,"%5s %4s %8s %11s %11s %6s %6s %s\n",
                config.f.processes ? "PID" : "TID",
                "PRIO",
                "USER",
@@ -216,7 +217,7 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
             humanize_val(&write_val, &write_str);
         }
 
-        printf("%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
+        fprintf(fp,"%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
                s->tid,
                str_ioprio(s->io_prio),
                pwd ? pwd->pw_name : "UNKNOWN",
@@ -231,6 +232,7 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
     }
 
     free(diff);
+    fclose(fp);
 }
 
 enum
