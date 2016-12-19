@@ -49,14 +49,14 @@ declare_sort(swap);
 int (*compfn)(const void *a, const void *b);
 static int order;
 
-void print_mem_info() {
+void print_mem_info(FILE *fp) {
     char buffer[1024];
     int numFound = 0;
 
     int fd = open("/proc/meminfo", O_RDONLY);
 
     if (fd < 0) {
-        printf("Unable to open /proc/meminfo: %s\n", strerror(errno));
+        fprintf(fp, "Unable to open /proc/meminfo: %s\n", strerror(errno));
         return;
     }
 
@@ -64,7 +64,7 @@ void print_mem_info() {
     close(fd);
 
     if (len < 0) {
-        printf("Empty /proc/meminfo");
+        fprintf(fp, "Empty /proc/meminfo");
         return;
     }
     buffer[len] = 0;
@@ -114,13 +114,13 @@ void print_mem_info() {
         if (*p) p++;
     }
 
-    printf("RAM: %" PRIu64 "K total, %" PRIu64 "K free, %" PRIu64 "K buffers, "
+    fprintf(fp, "RAM: %" PRIu64 "K total, %" PRIu64 "K free, %" PRIu64 "K buffers, "
             "%" PRIu64 "K cached, %" PRIu64 "K shmem, %" PRIu64 "K slab\n",
             mem[0], mem[1], mem[2], mem[3], mem[4], mem[5]);
 }
 
 #define MAX_LINES 50
-int procrank_main(int argc, char *argv[]) {
+int procrank_main(int argc, char *argv[], int out_fd) {
     pm_kernel_t *ker;
     pm_process_t *proc;
     pid_t *pids;
@@ -239,20 +239,21 @@ int procrank_main(int argc, char *argv[]) {
 
     qsort(procs, num_procs, sizeof(procs[0]), compfn);
 
-    printf("%5s  ", "PID");
+    FILE *fp = fdopen(out_fd, "w");
+    fprintf(fp, "%5s  ", "PID");
     if (ws) {
-        printf("%s  %7s  %7s  ", "WRss", "WPss", "WUss");
+        fprintf(fp, "%s  %7s  %7s  ", "WRss", "WPss", "WUss");
         if (has_swap) {
-            printf("%7s  ", "WSwap");
+            fprintf(fp, "%7s  ", "WSwap");
         }
     } else {
-        printf("%8s  %7s  %7s  %7s  ", "Vss", "Rss", "Pss", "Uss");
+        fprintf(fp, "%8s  %7s  %7s  %7s  ", "Vss", "Rss", "Pss", "Uss");
         if (has_swap) {
-            printf("%7s  ", "Swap");
+            fprintf(fp, "%7s  ", "Swap");
         }
     }
 
-    printf("%s\n", "cmdline");
+    fprintf(fp, "%s\n", "cmdline");
 
     total_pss = 0;
     total_uss = 0;
@@ -280,16 +281,16 @@ int procrank_main(int argc, char *argv[]) {
         total_uss += procs[i]->usage.uss;
         total_swap += procs[i]->usage.swap;
 
-        printf("%5d  ", procs[i]->pid);
+        fprintf(fp, "%5d  ", procs[i]->pid);
 
         if (ws) {
-            printf("%6zuK  %6zuK  %6zuK  ",
+            fprintf(fp, "%6zuK  %6zuK  %6zuK  ",
                 procs[i]->usage.rss / 1024,
                 procs[i]->usage.pss / 1024,
                 procs[i]->usage.uss / 1024
             );
         } else {
-            printf("%7zuK  %6zuK  %6zuK  %6zuK  ",
+            fprintf(fp, "%7zuK  %6zuK  %6zuK  %6zuK  ",
                 procs[i]->usage.vss / 1024,
                 procs[i]->usage.rss / 1024,
                 procs[i]->usage.pss / 1024,
@@ -298,10 +299,10 @@ int procrank_main(int argc, char *argv[]) {
         }
 
         if (has_swap) {
-            printf("%6zuK  ", procs[i]->usage.swap / 1024);
+            fprintf(fp, "%6zuK  ", procs[i]->usage.swap / 1024);
         }
 
-        printf("%s\n", cmdline);
+        fprintf(fp, "%s\n", cmdline);
 
         free(procs[i]);
     }
@@ -309,38 +310,39 @@ int procrank_main(int argc, char *argv[]) {
     free(procs);
 
     /* Print the separator line */
-    printf("%5s  ", "");
+    fprintf(fp, "%5s  ", "");
 
     if (ws) {
-        printf("%7s  %7s  %7s  ", "", "------", "------");
+        fprintf(fp, "%7s  %7s  %7s  ", "", "------", "------");
     } else {
-        printf("%8s  %7s  %7s  %7s  ", "", "", "------", "------");
+        fprintf(fp, "%8s  %7s  %7s  %7s  ", "", "", "------", "------");
     }
 
     if (has_swap) {
-        printf("%7s  ", "------");
+        fprintf(fp, "%7s  ", "------");
     }
 
-    printf("%s\n", "------");
+    fprintf(fp, "%s\n", "------");
 
     /* Print the total line */
-    printf("%5s  ", "");
+    fprintf(fp, "%5s  ", "");
     if (ws) {
-        printf("%7s  %6" PRIu64 "K  %" PRIu64 "K  ",
+        fprintf(fp,"%7s  %6" PRIu64 "K  %" PRIu64 "K  ",
             "", total_pss / 1024, total_uss / 1024);
     } else {
-        printf("%8s  %7s  %6" PRIu64 "K  %6" PRIu64 "K  ",
+        fprintf(fp,"%8s  %7s  %6" PRIu64 "K  %6" PRIu64 "K  ",
             "", "", total_pss / 1024, total_uss / 1024);
     }
 
     if (has_swap) {
-        printf("%6" PRIu64 "K  ", total_swap);
+        fprintf(fp,"%6" PRIu64 "K  ", total_swap);
     }
 
-    printf("TOTAL\n");
+    fprintf(fp,"TOTAL\n");
 
-    printf("\n");
-    print_mem_info();
+    fprintf(fp,"\n");
+    print_mem_info(fp);
+    fclose(fp);
 
     pm_kernel_destroy(ker);
     return 0;
