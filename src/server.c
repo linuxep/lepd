@@ -298,7 +298,6 @@ int main(int argc, char **argv)
 	 *
 	 * ****************************************/
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIotop", "iotop");
-	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdFree", "free");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
