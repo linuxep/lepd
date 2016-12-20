@@ -68,7 +68,7 @@ static unsigned long kscale(unsigned long b, unsigned long bs)
 }
 #endif
 
-int df_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
+int df_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 //int df_main(int argc UNUSED_PARAM, char **argv)
 {
 	unsigned long blocks_used;
@@ -134,7 +134,9 @@ int df_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		disp_units_hdr = xasprintf("%lu-blocks", df_disp_hr);
 #endif
 	}
-	printf("Filesystem           %-15sUsed Available %s Mounted on\n",
+	
+	FILE *fp = fdopen(fd, "w");
+	fprintf(fp,"Filesystem           %-15sUsed Available %s Mounted on\n",
 			disp_units_hdr, (opt & OPT_POSIX) ? "Capacity" : "Use%");
 
 	mount_table = NULL;
@@ -213,36 +215,36 @@ int df_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 				uni_stat_t uni_stat;
 				char *uni_dev = unicode_conv_to_printable(&uni_stat, device);
 				if (uni_stat.unicode_width > 20 && !(opt & OPT_POSIX)) {
-					printf("%s\n%20s", uni_dev, "");
+					fprintf(fp,"%s\n%20s", uni_dev, "");
 				} else {
-					printf("%s%*s", uni_dev, 20 - (int)uni_stat.unicode_width, "");
+					fprintf(fp,"%s%*s", uni_dev, 20 - (int)uni_stat.unicode_width, "");
 				}
 				free(uni_dev);
 			}
 #else
-			if (printf("\n%-20s" + 1, device) > 20 && !(opt & OPT_POSIX))
-				printf("\n%-20s", "");
+			if (fprintf(fp,"\n%-20s" + 1, device) > 20 && !(opt & OPT_POSIX))
+				fprintf(fp,"\n%-20s", "");
 #endif
 
 #if ENABLE_FEATURE_HUMAN_READABLE
-			printf(" %9s ",
+			fprintf(fp," %9s ",
 				/* f_blocks x f_bsize / df_disp_hr, show one fractional,
 				 * use suffixes if df_disp_hr == 0 */
 				make_human_readable_str(s.f_blocks, s.f_bsize, df_disp_hr));
 
-			printf(" %9s " + 1,
+			fprintf(fp," %9s " + 1,
 				/* EXPR x f_bsize / df_disp_hr, show one fractional,
 				 * use suffixes if df_disp_hr == 0 */
 				make_human_readable_str((s.f_blocks - s.f_bfree),
 						s.f_bsize, df_disp_hr));
 
-			printf("%9s %3u%% %s\n",
+			fprintf(fp,"%9s %3u%% %s\n",
 				/* f_bavail x f_bsize / df_disp_hr, show one fractional,
 				 * use suffixes if df_disp_hr == 0 */
 				make_human_readable_str(s.f_bavail, s.f_bsize, df_disp_hr),
 				blocks_percent_used, mount_point);
 #else
-			printf(" %9lu %9lu %9lu %3u%% %s\n",
+			fprintf(fp," %9lu %9lu %9lu %3u%% %s\n",
 				kscale(s.f_blocks, s.f_bsize),
 				kscale(s.f_blocks - s.f_bfree, s.f_bsize),
 				kscale(s.f_bavail, s.f_bsize),
@@ -250,6 +252,6 @@ int df_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 #endif
 		}
 	}
-
+	fclose(fp);
 	return status;
 }
