@@ -1,0 +1,222 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+SCCSID	iostat.c	51;"	d	file:
+SCCSID	mpstat.c	45;"	d	file:
+_	common.c	44;"	d	file:
+_	common.c	46;"	d	file:
+_	count.c	39;"	d	file:
+_	count.c	41;"	d	file:
+_	ioconf.c	37;"	d	file:
+_	ioconf.c	39;"	d	file:
+_	iostat.c	46;"	d	file:
+_	iostat.c	48;"	d	file:
+_	mpstat.c	40;"	d	file:
+_	mpstat.c	42;"	d	file:
+_	rd_stats.c	40;"	d	file:
+_	rd_stats.c	42;"	d	file:
+actflags	mpstat.c	/^unsigned int actflags = 0;$/;"	v
+alarm_handler	iostat.c	/^static void alarm_handler(int sig)$/;"	f	file:	signature:(int sig)
+alarm_handler	mpstat.c	/^static void alarm_handler(int sig)$/;"	f	file:	signature:(int sig)
+alrm_act	iostat.c	/^struct sigaction alrm_act;$/;"	v	typeref:struct:sigaction
+alrm_act	mpstat.c	/^struct sigaction alrm_act, int_act;$/;"	v	typeref:struct:sigaction
+compute_device_groups_stats	iostat.c	/^void compute_device_groups_stats(int curr)$/;"	f	signature:(int curr)
+compute_ext_disk_stats	common.c	/^void compute_ext_disk_stats(struct stats_disk *sdc, struct stats_disk *sdp,$/;"	f	signature:(struct stats_disk *sdc, struct stats_disk *sdp, unsigned long long itv, struct ext_disk_stats *xds)
+count	mpstat.c	/^static long interval = -1, count = 0;$/;"	v	file:
+count_bits	common.c	/^int count_bits(void *ptr, int size)$/;"	f	signature:(void *ptr, int size)
+count_csvalues	common.c	/^int count_csvalues(int arg_c, char **arg_v)$/;"	f	signature:(int arg_c, char **arg_v)
+cprintf_f	common.c	/^void cprintf_f(int num, int wi, int wd, ...)$/;"	f	signature:(int num, int wi, int wd, ...)
+cprintf_in	common.c	/^void cprintf_in(int type, char *format, char *item_string, int item_int)$/;"	f	signature:(int type, char *format, char *item_string, int item_int)
+cprintf_pc	common.c	/^void cprintf_pc(int num, int wi, int wd, ...)$/;"	f	signature:(int num, int wi, int wd, ...)
+cprintf_s	common.c	/^void cprintf_s(int type, char *format, char *string)$/;"	f	signature:(int type, char *format, char *string)
+cprintf_u64	common.c	/^void cprintf_u64(int num, int width, ...)$/;"	f	signature:(int num, int width, ...)
+cprintf_x	common.c	/^void cprintf_x(int num, int width, ...)$/;"	f	signature:(int num, int width, ...)
+cpu_bitmap	mpstat.c	/^unsigned char *cpu_bitmap;	\/* Bit 0: Global; Bit 1: 1st proc; etc. *\/$/;"	v
+cpu_nr	iostat.c	/^static int cpu_nr = 0;		\/* Nb of processors on the machine *\/$/;"	v	file:
+cpu_nr	mpstat.c	/^static int cpu_nr = 0;$/;"	v	file:
+device_name	common.c	/^char *device_name(char *name)$/;"	f	signature:(char *name)
+dlist_idx	iostat.c	/^int dlist_idx = 0;	\/* Nb of devices entered on the command line *\/$/;"	v
+dm_major	iostat.c	/^unsigned int dm_major;	\/* Device-mapper major number *\/$/;"	v
+flags	iostat.c	/^static int flags = 0;		\/* Flag for common options and system state *\/$/;"	v	file:
+flags	mpstat.c	/^static unsigned int flags = 0;$/;"	v	file:
+free_unregistered_entries	iostat.c	/^void free_unregistered_entries(int iodev_nr, struct io_hdr_stats *st_hdr_iodev)$/;"	f	signature:(int iodev_nr, struct io_hdr_stats *st_hdr_iodev)
+get_HZ	common.c	/^void get_HZ(void)$/;"	f	signature:(void)
+get_cpu_nr	count.c	/^int get_cpu_nr(unsigned int max_nr_cpus, int highest)$/;"	f	signature:(unsigned int max_nr_cpus, int highest)
+get_dev_part_nr	common.c	/^int get_dev_part_nr(char *dev_name)$/;"	f	signature:(char *dev_name)
+get_devmap_major	common.c	/^unsigned int get_devmap_major(void)$/;"	f	signature:(void)
+get_disk_nr	count.c	/^int get_disk_nr(unsigned int f)$/;"	f	signature:(unsigned int f)
+get_diskstats_dev_nr	count.c	/^int get_diskstats_dev_nr(int count_part, int only_used_dev)$/;"	f	signature:(int count_part, int only_used_dev)
+get_fchost_nr	count.c	/^int get_fchost_nr(void)$/;"	f	signature:(void)
+get_filesystem_nr	count.c	/^int get_filesystem_nr(void)$/;"	f	signature:(void)
+get_freq_nr	count.c	/^int get_freq_nr(void)$/;"	f	signature:(void)
+get_gmtime	common.c	/^time_t get_gmtime(struct tm *rectime, int d_off)$/;"	f	signature:(struct tm *rectime, int d_off)
+get_iface_nr	count.c	/^int get_iface_nr(void)$/;"	f	signature:(void)
+get_interval	common.c	/^unsigned long long get_interval(unsigned long long prev_uptime,$/;"	f	signature:(unsigned long long prev_uptime, unsigned long long curr_uptime)
+get_irq_nr	count.c	/^int get_irq_nr(void)$/;"	f	signature:(void)
+get_irqcpu_nr	count.c	/^int get_irqcpu_nr(char *file, int max_nr_irqcpu, int cpu_nr)$/;"	f	signature:(char *file, int max_nr_irqcpu, int cpu_nr)
+get_kb_shift	common.c	/^void get_kb_shift(void)$/;"	f	signature:(void)
+get_localtime	common.c	/^time_t get_localtime(struct tm *rectime, int d_off)$/;"	f	signature:(struct tm *rectime, int d_off)
+get_per_cpu_interval	common.c	/^unsigned long long get_per_cpu_interval(struct stats_cpu *scc,$/;"	f	signature:(struct stats_cpu *scc, struct stats_cpu *scp)
+get_persistent_name_from_pretty	common.c	/^char *get_persistent_name_from_pretty(char *pretty)$/;"	f	signature:(char *pretty)
+get_persistent_name_path	common.c	/^char *get_persistent_name_path(char *name)$/;"	f	signature:(char *name)
+get_persistent_names	common.c	/^char **get_persistent_names(void)$/;"	f	signature:(void)
+get_persistent_type_dir	common.c	/^char *get_persistent_type_dir(char *type)$/;"	f	signature:(char *type)
+get_pretty_name_from_persistent	common.c	/^char *get_pretty_name_from_persistent(char *persistent)$/;"	f	signature:(char *persistent)
+get_proc_cpu_nr	count.c	/^int get_proc_cpu_nr(void)$/;"	f	signature:(void)
+get_serial_nr	count.c	/^int get_serial_nr(void)$/;"	f	signature:(void)
+get_sys_cpu_nr	count.c	/^int get_sys_cpu_nr(int highest)$/;"	f	signature:(int highest)
+get_sysfs_dev_nr	common.c	/^int get_sysfs_dev_nr(int display_partitions)$/;"	f	signature:(int display_partitions)
+get_time	common.c	/^time_t get_time(struct tm *rectime, int d_off)$/;"	f	signature:(struct tm *rectime, int d_off)
+get_usb_nr	count.c	/^int get_usb_nr(void)$/;"	f	signature:(void)
+get_win_height	common.c	/^int get_win_height(void)$/;"	f	signature:(void)
+group_name	iostat.c	/^char group_name[MAX_NAME_LEN];$/;"	v
+group_nr	iostat.c	/^int group_nr = 0;	\/* Nb of device groups *\/$/;"	v
+hz	common.c	/^unsigned int hz;$/;"	v
+init_colors	common.c	/^void init_colors(void)$/;"	f	signature:(void)
+init_nls	common.c	/^void init_nls(void)$/;"	f	signature:(void)
+init_stats	iostat.c	/^void init_stats(void)$/;"	f	signature:(void)
+int_act	mpstat.c	/^struct sigaction alrm_act, int_act;$/;"	v	typeref:struct:
+int_handler	mpstat.c	/^void int_handler(int sig)$/;"	f	signature:(int sig)
+interval	iostat.c	/^static long interval = 0;$/;"	v	file:
+interval	mpstat.c	/^static long interval = -1, count = 0;$/;"	v	file:
+io_sys_free	iostat.c	/^void io_sys_free(void)$/;"	f	signature:(void)
+io_sys_init	iostat.c	/^void io_sys_init(void)$/;"	f	signature:(void)
+ioc_conv	ioconf.c	/^static char *ioc_conv(int radix, int nozero, const char *syms,$/;"	f	file:	signature:(int radix, int nozero, const char *syms, unsigned int val)
+ioc_free	ioconf.c	/^static void ioc_free(void)$/;"	f	file:	signature:(void)
+ioc_init	ioconf.c	/^int ioc_init(void)$/;"	f	signature:(void)
+ioc_iswhole	ioconf.c	/^int ioc_iswhole(unsigned int major, unsigned int minor)$/;"	f	signature:(unsigned int major, unsigned int minor)
+ioc_ito10	ioconf.c	/^char *ioc_ito10(unsigned int n)$/;"	f	signature:(unsigned int n)
+ioc_ito26	ioconf.c	/^char *ioc_ito26(unsigned int n)$/;"	f	signature:(unsigned int n)
+ioc_name	ioconf.c	/^char *ioc_name(unsigned int major, unsigned int minor)$/;"	f	signature:(unsigned int major, unsigned int minor)
+ioc_parsed	ioconf.c	/^static unsigned int ioc_parsed = 0;$/;"	v	file:
+ioc_refnr	ioconf.c	/^static unsigned int ioc_refnr[MAX_BLKDEV + 1];$/;"	v	file:
+ioconf	ioconf.c	/^static struct ioc_entry *ioconf[MAX_BLKDEV + 1];$/;"	v	typeref:struct:ioc_entry	file:
+iodev_nr	iostat.c	/^int iodev_nr = 0;	\/* Nb of devices and partitions found. Includes nb of device groups *\/$/;"	v
+iostat_main	iostat.c	/^int iostat_main(int argc, char **argv, int fd)$/;"	f	signature:(int argc, char **argv, int fd)
+irqcpu_nr	mpstat.c	/^int irqcpu_nr = 0;$/;"	v
+is_device	common.c	/^int is_device(char *name, int allow_virtual)$/;"	f	signature:(char *name, int allow_virtual)
+is_iso_time_fmt	common.c	/^int is_iso_time_fmt(void)$/;"	f	signature:(void)
+kb_shift	common.c	/^unsigned int kb_shift;$/;"	v
+ll_sp_value	common.c	/^double ll_sp_value(unsigned long long value1, unsigned long long value2,$/;"	f	signature:(unsigned long long value1, unsigned long long value2, unsigned long long itv)
+mp_tstamp	mpstat.c	/^struct tm mp_tstamp[3];$/;"	v	typeref:struct:tm
+mpstat_main	mpstat.c	/^int mpstat_main(int argc, char **argv)$/;"	f	signature:(int argc, char **argv)
+oct2chr	rd_stats.c	/^void oct2chr(char *str)$/;"	f	signature:(char *str)
+persistent_name_type	common.c	/^char persistent_name_type[MAX_FILE_LEN];$/;"	v
+presave_device_list	iostat.c	/^void presave_device_list(void)$/;"	f	signature:(void)
+print_gal_header	common.c	/^int print_gal_header(struct tm *rectime, char *sysname, char *release,$/;"	f	signature:(struct tm *rectime, char *sysname, char *release, char *nodename, char *machine, int cpu_nr, int format)
+print_version	common.c	/^void print_version(void)$/;"	f	signature:(void)
+prtab	common.c	/^void prtab(int nr_tab)$/;"	f	signature:(int nr_tab)
+read_bus_usb_dev	rd_stats.c	/^void read_bus_usb_dev(struct stats_pwr_usb *st_pwr_usb, int nbr)$/;"	f	signature:(struct stats_pwr_usb *st_pwr_usb, int nbr)
+read_cpuinfo	rd_stats.c	/^void read_cpuinfo(struct stats_pwr_cpufreq *st_pwr_cpufreq, int nbr)$/;"	f	signature:(struct stats_pwr_cpufreq *st_pwr_cpufreq, int nbr)
+read_diskstats_disk	rd_stats.c	/^void read_diskstats_disk(struct stats_disk *st_disk, int nbr, int read_part)$/;"	f	signature:(struct stats_disk *st_disk, int nbr, int read_part)
+read_diskstats_io	rd_stats.c	/^void read_diskstats_io(struct stats_io *st_io)$/;"	f	signature:(struct stats_io *st_io)
+read_diskstats_stat	iostat.c	/^void read_diskstats_stat(int curr)$/;"	f	signature:(int curr)
+read_fchost	rd_stats.c	/^void read_fchost(struct stats_fchost *st_fc, int nbr)$/;"	f	signature:(struct stats_fchost *st_fc, int nbr)
+read_filesystem	rd_stats.c	/^void read_filesystem(struct stats_filesystem *st_filesystem, int nbr)$/;"	f	signature:(struct stats_filesystem *st_filesystem, int nbr)
+read_if_info	rd_stats.c	/^void read_if_info(struct stats_net_dev *st_net_dev, int nbr)$/;"	f	signature:(struct stats_net_dev *st_net_dev, int nbr)
+read_interrupts_stat	mpstat.c	/^void read_interrupts_stat(char *file, struct stats_irqcpu *st_ic[], int ic_nr, int curr)$/;"	f	signature:(char *file, struct stats_irqcpu *st_ic[], int ic_nr, int curr)
+read_kernel_tables	rd_stats.c	/^void read_kernel_tables(struct stats_ktables *st_ktables)$/;"	f	signature:(struct stats_ktables *st_ktables)
+read_loadavg	rd_stats.c	/^void read_loadavg(struct stats_queue *st_queue)$/;"	f	signature:(struct stats_queue *st_queue)
+read_meminfo	rd_stats.c	/^void read_meminfo(struct stats_memory *st_memory)$/;"	f	signature:(struct stats_memory *st_memory)
+read_meminfo_huge	rd_stats.c	/^void read_meminfo_huge(struct stats_huge *st_huge)$/;"	f	signature:(struct stats_huge *st_huge)
+read_net_dev	rd_stats.c	/^int read_net_dev(struct stats_net_dev *st_net_dev, int nbr)$/;"	f	signature:(struct stats_net_dev *st_net_dev, int nbr)
+read_net_edev	rd_stats.c	/^void read_net_edev(struct stats_net_edev *st_net_edev, int nbr)$/;"	f	signature:(struct stats_net_edev *st_net_edev, int nbr)
+read_net_eicmp	rd_stats.c	/^void read_net_eicmp(struct stats_net_eicmp *st_net_eicmp)$/;"	f	signature:(struct stats_net_eicmp *st_net_eicmp)
+read_net_eicmp6	rd_stats.c	/^void read_net_eicmp6(struct stats_net_eicmp6 *st_net_eicmp6)$/;"	f	signature:(struct stats_net_eicmp6 *st_net_eicmp6)
+read_net_eip	rd_stats.c	/^void read_net_eip(struct stats_net_eip *st_net_eip)$/;"	f	signature:(struct stats_net_eip *st_net_eip)
+read_net_eip6	rd_stats.c	/^void read_net_eip6(struct stats_net_eip6 *st_net_eip6)$/;"	f	signature:(struct stats_net_eip6 *st_net_eip6)
+read_net_etcp	rd_stats.c	/^void read_net_etcp(struct stats_net_etcp *st_net_etcp)$/;"	f	signature:(struct stats_net_etcp *st_net_etcp)
+read_net_icmp	rd_stats.c	/^void read_net_icmp(struct stats_net_icmp *st_net_icmp)$/;"	f	signature:(struct stats_net_icmp *st_net_icmp)
+read_net_icmp6	rd_stats.c	/^void read_net_icmp6(struct stats_net_icmp6 *st_net_icmp6)$/;"	f	signature:(struct stats_net_icmp6 *st_net_icmp6)
+read_net_ip	rd_stats.c	/^void read_net_ip(struct stats_net_ip *st_net_ip)$/;"	f	signature:(struct stats_net_ip *st_net_ip)
+read_net_ip6	rd_stats.c	/^void read_net_ip6(struct stats_net_ip6 *st_net_ip6)$/;"	f	signature:(struct stats_net_ip6 *st_net_ip6)
+read_net_nfs	rd_stats.c	/^void read_net_nfs(struct stats_net_nfs *st_net_nfs)$/;"	f	signature:(struct stats_net_nfs *st_net_nfs)
+read_net_nfsd	rd_stats.c	/^void read_net_nfsd(struct stats_net_nfsd *st_net_nfsd)$/;"	f	signature:(struct stats_net_nfsd *st_net_nfsd)
+read_net_sock	rd_stats.c	/^void read_net_sock(struct stats_net_sock *st_net_sock)$/;"	f	signature:(struct stats_net_sock *st_net_sock)
+read_net_sock6	rd_stats.c	/^void read_net_sock6(struct stats_net_sock6 *st_net_sock6)$/;"	f	signature:(struct stats_net_sock6 *st_net_sock6)
+read_net_tcp	rd_stats.c	/^void read_net_tcp(struct stats_net_tcp *st_net_tcp)$/;"	f	signature:(struct stats_net_tcp *st_net_tcp)
+read_net_udp	rd_stats.c	/^void read_net_udp(struct stats_net_udp *st_net_udp)$/;"	f	signature:(struct stats_net_udp *st_net_udp)
+read_net_udp6	rd_stats.c	/^void read_net_udp6(struct stats_net_udp6 *st_net_udp6)$/;"	f	signature:(struct stats_net_udp6 *st_net_udp6)
+read_stat_cpu	rd_stats.c	/^void read_stat_cpu(struct stats_cpu *st_cpu, int nbr,$/;"	f	signature:(struct stats_cpu *st_cpu, int nbr, unsigned long long *uptime, unsigned long long *uptime0)
+read_stat_irq	rd_stats.c	/^void read_stat_irq(struct stats_irq *st_irq, int nbr)$/;"	f	signature:(struct stats_irq *st_irq, int nbr)
+read_stat_pcsw	rd_stats.c	/^void read_stat_pcsw(struct stats_pcsw *st_pcsw)$/;"	f	signature:(struct stats_pcsw *st_pcsw)
+read_sysfs_dlist_part_stat	iostat.c	/^void read_sysfs_dlist_part_stat(int curr, char *dev_name)$/;"	f	signature:(int curr, char *dev_name)
+read_sysfs_dlist_stat	iostat.c	/^void read_sysfs_dlist_stat(int curr)$/;"	f	signature:(int curr)
+read_sysfs_file_stat	iostat.c	/^int read_sysfs_file_stat(int curr, char *filename, char *dev_name)$/;"	f	signature:(int curr, char *filename, char *dev_name)
+read_sysfs_stat	iostat.c	/^void read_sysfs_stat(int curr)$/;"	f	signature:(int curr)
+read_time_in_state	rd_stats.c	/^void read_time_in_state(struct stats_pwr_wghfreq *st_pwr_wghfreq, int cpu_nr, int nbr)$/;"	f	signature:(struct stats_pwr_wghfreq *st_pwr_wghfreq, int cpu_nr, int nbr)
+read_tty_driver_serial	rd_stats.c	/^void read_tty_driver_serial(struct stats_serial *st_serial, int nbr)$/;"	f	signature:(struct stats_serial *st_serial, int nbr)
+read_uptime	rd_stats.c	/^void read_uptime(unsigned long long *uptime)$/;"	f	signature:(unsigned long long *uptime)
+read_usb_stats	rd_stats.c	/^void read_usb_stats(struct stats_pwr_usb *st_pwr_usb, char *usb_device)$/;"	f	signature:(struct stats_pwr_usb *st_pwr_usb, char *usb_device)
+read_vmstat_paging	rd_stats.c	/^void read_vmstat_paging(struct stats_paging *st_paging)$/;"	f	signature:(struct stats_paging *st_paging)
+read_vmstat_swap	rd_stats.c	/^void read_vmstat_swap(struct stats_swap *st_swap)$/;"	f	signature:(struct stats_swap *st_swap)
+rw_io_stat_loop	iostat.c	/^void rw_io_stat_loop(long int count, struct tm *rectime)$/;"	f	signature:(long int count, struct tm *rectime)
+rw_mpstat_loop	mpstat.c	/^void rw_mpstat_loop(int dis_hdr, int rows)$/;"	f	signature:(int dis_hdr, int rows)
+salloc_dev_list	iostat.c	/^void salloc_dev_list(int list_len)$/;"	f	signature:(int list_len)
+salloc_device	iostat.c	/^void salloc_device(int dev_nr)$/;"	f	signature:(int dev_nr)
+salloc_mp_struct	mpstat.c	/^void salloc_mp_struct(int nr_cpus)$/;"	f	signature:(int nr_cpus)
+save_stats	iostat.c	/^void save_stats(char *name, int curr, void *st_io, int iodev_nr,$/;"	f	signature:(char *name, int curr, void *st_io, int iodev_nr, struct io_hdr_stats *st_hdr_iodev)
+sc_int_stat	common.c	/^char sc_int_stat[MAX_SGR_LEN] = C_BOLD_YELLOW;$/;"	v
+sc_item_name	common.c	/^char sc_item_name[MAX_SGR_LEN] = C_LIGHT_GREEN;$/;"	v
+sc_normal	common.c	/^char sc_normal[MAX_SGR_LEN] = C_NORMAL;$/;"	v
+sc_percent_high	common.c	/^char sc_percent_high[MAX_SGR_LEN] = C_BOLD_RED;$/;"	v
+sc_percent_low	common.c	/^char sc_percent_low[MAX_SGR_LEN] = C_BOLD_BLUE;$/;"	v
+sc_sa_comment	common.c	/^char sc_sa_comment[MAX_SGR_LEN] = C_LIGHT_CYAN;$/;"	v
+sc_sa_restart	common.c	/^char sc_sa_restart[MAX_SGR_LEN] = C_LIGHT_RED;$/;"	v
+sc_zero_int_stat	common.c	/^char sc_zero_int_stat[MAX_SGR_LEN] = C_LIGHT_YELLOW;$/;"	v
+sccsid	iostat.c	/^static char *sccsid(void) { return (SCCSID); }$/;"	f	file:	signature:(void)
+sccsid	mpstat.c	/^static char *sccsid(void) { return (SCCSID); }$/;"	f	file:	signature:(void)
+set_disk_output_unit	iostat.c	/^void set_disk_output_unit(void)$/;"	f	signature:(void)
+set_entries_unregistered	iostat.c	/^void set_entries_unregistered(int iodev_nr, struct io_hdr_stats *st_hdr_iodev)$/;"	f	signature:(int iodev_nr, struct io_hdr_stats *st_hdr_iodev)
+sfree_dev_list	iostat.c	/^void sfree_dev_list(void)$/;"	f	signature:(void)
+sfree_mp_struct	mpstat.c	/^void sfree_mp_struct(void)$/;"	f	signature:(void)
+sigint_caught	mpstat.c	/^int sigint_caught = 0;$/;"	v
+softirqcpu_nr	mpstat.c	/^int softirqcpu_nr = 0;$/;"	v
+st_cpu	iostat.c	/^struct stats_cpu *st_cpu[2];$/;"	v	typeref:struct:stats_cpu
+st_cpu	mpstat.c	/^struct stats_cpu *st_cpu[3];$/;"	v	typeref:struct:stats_cpu
+st_dev_list	iostat.c	/^struct io_dlist *st_dev_list;$/;"	v	typeref:struct:io_dlist
+st_hdr_iodev	iostat.c	/^struct io_hdr_stats *st_hdr_iodev;$/;"	v	typeref:struct:io_hdr_stats
+st_iodev	iostat.c	/^struct io_stats *st_iodev[2];$/;"	v	typeref:struct:io_stats
+st_irq	mpstat.c	/^struct stats_irq *st_irq[3];$/;"	v	typeref:struct:stats_irq
+st_irqcpu	mpstat.c	/^struct stats_irqcpu *st_irqcpu[3];$/;"	v	typeref:struct:stats_irqcpu
+st_softirqcpu	mpstat.c	/^struct stats_irqcpu *st_softirqcpu[3];$/;"	v	typeref:struct:stats_irqcpu
+strtolower	common.c	/^char *strtolower(char *str)$/;"	f	signature:(char *str)
+sysstat_panic	common.c	/^void sysstat_panic(const char *function, int error_code)$/;"	f	signature:(const char *function, int error_code)
+timestamp	iostat.c	/^char timestamp[64];$/;"	v
+transform_devmapname	ioconf.c	/^char *transform_devmapname(unsigned int major, unsigned int minor)$/;"	f	signature:(unsigned int major, unsigned int minor)
+update_dev_list	iostat.c	/^int update_dev_list(int *dlist_idx, char *device_name)$/;"	f	signature:(int *dlist_idx, char *device_name)
+uptime	iostat.c	/^static unsigned long long uptime[2]  = {0, 0};$/;"	v	file:
+uptime	mpstat.c	/^static unsigned long long uptime[3] = {0, 0, 0};$/;"	v	file:
+uptime0	iostat.c	/^static unsigned long long uptime0[2] = {0, 0};$/;"	v	file:
+uptime0	mpstat.c	/^static unsigned long long uptime0[3] = {0, 0, 0};$/;"	v	file:
+usage	iostat.c	/^static void usage(char *progname)$/;"	f	file:	signature:(char *progname)
+usage	mpstat.c	/^static void usage(char *progname)$/;"	f	file:	signature:(char *progname)
+write_basic_stat	iostat.c	/^void write_basic_stat(unsigned long long itv, int fctr,$/;"	f	signature:(unsigned long long itv, int fctr, struct io_hdr_stats *shi, struct io_stats *ioi, struct io_stats *ioj, int tab)
+write_cpu_stat	iostat.c	/^void write_cpu_stat(int curr, unsigned long long itv, int tab)$/;"	f	signature:(int curr, unsigned long long itv, int tab)
+write_cpu_stats	mpstat.c	/^void write_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,$/;"	f	signature:(int dis, unsigned long long g_itv, int prev, int curr, char *prev_string, char *curr_string, int tab, int *next)
+write_disk_stat_header	iostat.c	/^void write_disk_stat_header(int *fctr, int *tab)$/;"	f	signature:(int *fctr, int *tab)
+write_ext_stat	iostat.c	/^void write_ext_stat(unsigned long long itv, int fctr,$/;"	f	signature:(unsigned long long itv, int fctr, struct io_hdr_stats *shi, struct io_stats *ioi, struct io_stats *ioj, int tab)
+write_irqcpu_stats	mpstat.c	/^void write_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,$/;"	f	signature:(struct stats_irqcpu *st_ic[], int ic_nr, int dis, unsigned long long itv, int prev, int curr, char *prev_string, char *curr_string, int tab, int *next, int type)
+write_isumcpu_stats	mpstat.c	/^void write_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,$/;"	f	signature:(int dis, unsigned long long itv, int prev, int curr, char *prev_string, char *curr_string, int tab, int *next)
+write_json_basic_stat	iostat.c	/^void write_json_basic_stat(int tab, unsigned long long itv, int fctr,$/;"	f	signature:(int tab, unsigned long long itv, int fctr, struct io_stats *ioi, struct io_stats *ioj, char *devname, unsigned long long rd_sec, unsigned long long wr_sec)
+write_json_cpu_stat	iostat.c	/^void write_json_cpu_stat(int tab, int curr, unsigned long long itv)$/;"	f	signature:(int tab, int curr, unsigned long long itv)
+write_json_cpu_stats	mpstat.c	/^void write_json_cpu_stats(int tab, unsigned long long g_itv, int prev, int curr,$/;"	f	signature:(int tab, unsigned long long g_itv, int prev, int curr, char *curr_string)
+write_json_ext_stat	iostat.c	/^void write_json_ext_stat(int tab, unsigned long long itv, int fctr,$/;"	f	signature:(int tab, unsigned long long itv, int fctr, struct io_hdr_stats *shi, struct io_stats *ioi, struct io_stats *ioj, char *devname, struct ext_disk_stats *xds, double r_await, double w_await)
+write_json_irqcpu_stats	mpstat.c	/^void write_json_irqcpu_stats(int tab, struct stats_irqcpu *st_ic[], int ic_nr,$/;"	f	signature:(int tab, struct stats_irqcpu *st_ic[], int ic_nr, unsigned long long itv, int prev, int curr, char *curr_string, int type)
+write_json_isumcpu_stats	mpstat.c	/^void write_json_isumcpu_stats(int tab, unsigned long long itv, int prev, int curr,$/;"	f	signature:(int tab, unsigned long long itv, int prev, int curr, char *curr_string)
+write_plain_basic_stat	iostat.c	/^void write_plain_basic_stat(unsigned long long itv, int fctr,$/;"	f	signature:(unsigned long long itv, int fctr, struct io_stats *ioi, struct io_stats *ioj, char *devname, unsigned long long rd_sec, unsigned long long wr_sec)
+write_plain_cpu_stat	iostat.c	/^void write_plain_cpu_stat(int curr, unsigned long long itv)$/;"	f	signature:(int curr, unsigned long long itv)
+write_plain_cpu_stats	mpstat.c	/^void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,$/;"	f	signature:(int dis, unsigned long long g_itv, int prev, int curr, char *prev_string, char *curr_string)
+write_plain_ext_stat	iostat.c	/^void write_plain_ext_stat(unsigned long long itv, int fctr,$/;"	f	signature:(unsigned long long itv, int fctr, struct io_hdr_stats *shi, struct io_stats *ioi, struct io_stats *ioj, char *devname, struct ext_disk_stats *xds, double r_await, double w_await)
+write_plain_irqcpu_stats	mpstat.c	/^void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,$/;"	f	signature:(struct stats_irqcpu *st_ic[], int ic_nr, int dis, unsigned long long itv, int prev, int curr, char *prev_string, char *curr_string)
+write_plain_isumcpu_stats	mpstat.c	/^void write_plain_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,$/;"	f	signature:(int dis, unsigned long long itv, int prev, int curr, char *prev_string, char *curr_string)
+write_sample_timestamp	iostat.c	/^void write_sample_timestamp(int tab, struct tm *rectime)$/;"	f	signature:(int tab, struct tm *rectime)
+write_stats	iostat.c	/^static void write_stats(int curr, struct tm *rectime)$/;"	f	file:	signature:(int curr, struct tm *rectime)
+write_stats	mpstat.c	/^void write_stats(int curr, int dis)$/;"	f	signature:(int curr, int dis)
+write_stats_avg	mpstat.c	/^void write_stats_avg(int curr, int dis)$/;"	f	signature:(int curr, int dis)
+write_stats_core	mpstat.c	/^static void write_stats_core(int prev, int curr, int dis,$/;"	f	file:	signature:(int prev, int curr, int dis, char *prev_string, char *curr_string)
+xprintf	common.c	/^void xprintf(int nr_tab, const char *fmtf, ...)$/;"	f	signature:(int nr_tab, const char *fmtf, ...)
+xprintf0	common.c	/^void xprintf0(int nr_tab, const char *fmtf, ...)$/;"	f	signature:(int nr_tab, const char *fmtf, ...)

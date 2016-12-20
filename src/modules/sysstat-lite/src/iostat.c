@@ -73,6 +73,7 @@ char timestamp[64];
 
 struct sigaction alrm_act;
 
+static FILE* out_fp = NULL;
 /*
  ***************************************************************************
  * Print usage and exit.
@@ -836,7 +837,7 @@ void write_sample_timestamp(int tab, struct tm *rectime)
 		xprintf(tab, "\"timestamp\": \"%s\",", timestamp);
 	}
 	else {
-		printf("%s\n", timestamp);
+		fprintf(out_fp,"%s\n", timestamp);
 	}
 }
 
@@ -851,10 +852,10 @@ void write_sample_timestamp(int tab, struct tm *rectime)
  */
 void write_plain_cpu_stat(int curr, unsigned long long itv)
 {
-	printf("avg-cpu:  %%user   %%nice %%system %%iowait  %%steal   %%idle\n");
+	fprintf(out_fp,"avg-cpu:  %%user   %%nice %%system %%iowait  %%steal   %%idle\n");
 
-	printf("       ");
-	cprintf_pc(6, 7, 2,
+	fprintf(out_fp,"       ");
+	cprintf_pc(out_fp,6, 7, 2,
 		   ll_sp_value(st_cpu[!curr]->cpu_user,   st_cpu[curr]->cpu_user,   itv),
 		   ll_sp_value(st_cpu[!curr]->cpu_nice,   st_cpu[curr]->cpu_nice,   itv),
 		   /*
@@ -871,7 +872,7 @@ void write_plain_cpu_stat(int curr, unsigned long long itv)
 		   0.0 :
 		   ll_sp_value(st_cpu[!curr]->cpu_idle,   st_cpu[curr]->cpu_idle,   itv));
 
-	printf("\n\n");
+	fprintf(out_fp,"\n\n");
 }
 
 /*
@@ -950,29 +951,29 @@ void write_disk_stat_header(int *fctr, int *tab)
 
 	if (DISPLAY_EXTENDED(flags)) {
 		/* Extended stats */
-		printf("Device:         rrqm/s   wrqm/s     r/s     w/s");
+		fprintf(out_fp,"Device:         rrqm/s   wrqm/s     r/s     w/s");
 		if (DISPLAY_MEGABYTES(flags)) {
-			printf("    rMB/s    wMB/s");
+			fprintf(out_fp,"    rMB/s    wMB/s");
 		}
 		else if (DISPLAY_KILOBYTES(flags)) {
-			printf("    rkB/s    wkB/s");
+			fprintf(out_fp,"    rkB/s    wkB/s");
 		}
 		else {
-			printf("   rsec/s   wsec/s");
+			fprintf(out_fp,"   rsec/s   wsec/s");
 		}
-		printf(" avgrq-sz avgqu-sz   await r_await w_await  svctm  %%util\n");
+		fprintf(out_fp," avgrq-sz avgqu-sz   await r_await w_await  svctm  %%util\n");
 	}
 	else {
 		/* Basic stats */
-		printf("Device:            tps");
+		fprintf(out_fp,"Device:            tps");
 		if (DISPLAY_KILOBYTES(flags)) {
-			printf("    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn\n");
+			fprintf(out_fp,"    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn\n");
 		}
 		else if (DISPLAY_MEGABYTES(flags)) {
-			printf("    MB_read/s    MB_wrtn/s    MB_read    MB_wrtn\n");
+			fprintf(out_fp,"    MB_read/s    MB_wrtn/s    MB_read    MB_wrtn\n");
 		}
 		else {
-			printf("   Blk_read/s   Blk_wrtn/s   Blk_read   Blk_wrtn\n");
+			fprintf(out_fp,"   Blk_read/s   Blk_wrtn/s   Blk_read   Blk_wrtn\n");
 		}
 	}
 }
@@ -983,6 +984,7 @@ void write_disk_stat_header(int *fctr, int *tab)
  * in plain format.
  *
  * IN:
+ *
  * @itv		Interval of time.
  * @fctr	Conversion factor.
  * @shi		Structures describing the devices and partitions.
@@ -1000,37 +1002,37 @@ void write_plain_ext_stat(unsigned long long itv, int fctr,
 			  double r_await, double w_await)
 {
 	if (DISPLAY_HUMAN_READ(flags)) {
-		cprintf_in(IS_STR, "%s\n", devname, 0);
-		printf("%13s", "");
+		cprintf_in(out_fp,IS_STR, "%s\n", devname, 0);
+		fprintf(out_fp,"%13s", "");
 	}
 	else {
-		cprintf_in(IS_STR, "%-13s", devname, 0);
+		cprintf_in(out_fp,IS_STR, "%-13s", devname, 0);
 	}
 
 	/*       rrq/s wrq/s   r/s   w/s  rsec  wsec  rqsz  qusz await r_await w_await svctm %util */
-	cprintf_f(2, 8, 2,
+	cprintf_f(out_fp,2, 8, 2,
 		  S_VALUE(ioj->rd_merges, ioi->rd_merges, itv),
 		  S_VALUE(ioj->wr_merges, ioi->wr_merges, itv));
-	cprintf_f(2, 7, 2,
+	cprintf_f(out_fp,2, 7, 2,
 		  S_VALUE(ioj->rd_ios, ioi->rd_ios, itv),
 		  S_VALUE(ioj->wr_ios, ioi->wr_ios, itv));
-	cprintf_f(4, 8, 2,
+	cprintf_f(out_fp,4, 8, 2,
 		  S_VALUE(ioj->rd_sectors, ioi->rd_sectors, itv) / fctr,
 		  S_VALUE(ioj->wr_sectors, ioi->wr_sectors, itv) / fctr,
 		  xds->arqsz,
 		  S_VALUE(ioj->rq_ticks, ioi->rq_ticks, itv) / 1000.0);
-	cprintf_f(3, 7, 2, xds->await, r_await, w_await);
+	cprintf_f(out_fp,3, 7, 2, xds->await, r_await, w_await);
 	/* The ticks output is biased to output 1000 ticks per second */
-	cprintf_f(1, 6, 2, xds->svctm);
+	cprintf_f(out_fp,1, 6, 2, xds->svctm);
 	/*
 	 * Again: Ticks in milliseconds.
 	 * In the case of a device group (option -g), shi->used is the number of
 	 * devices in the group. Else shi->used equals 1.
 	 */
-	cprintf_pc(1, 6, 2,
+	cprintf_pc(out_fp,1, 6, 2,
 		   shi->used ? xds->util / 10.0 / (double) shi->used
 		             : xds->util / 10.0);	/* shi->used should never be zero here */
-	printf("\n");
+	fprintf(out_fp,"\n");
 }
 
 /*
@@ -1175,21 +1177,21 @@ void write_plain_basic_stat(unsigned long long itv, int fctr,
 			    unsigned long long wr_sec)
 {
 	if (DISPLAY_HUMAN_READ(flags)) {
-		cprintf_in(IS_STR, "%s\n", devname, 0);
-		printf("%13s", "");
+		cprintf_in(out_fp,IS_STR, "%s\n", devname, 0);
+		fprintf(out_fp,"%13s", "");
 	}
 	else {
-		cprintf_in(IS_STR, "%-13s", devname, 0);
+		cprintf_in(out_fp,IS_STR, "%-13s", devname, 0);
 	}
-	cprintf_f(1, 8, 2,
+	cprintf_f(out_fp,1, 8, 2,
 		  S_VALUE(ioj->rd_ios + ioj->wr_ios, ioi->rd_ios + ioi->wr_ios, itv));
-	cprintf_f(2, 12, 2,
+	cprintf_f(out_fp,2, 12, 2,
 		  S_VALUE(ioj->rd_sectors, ioi->rd_sectors, itv) / fctr,
 		  S_VALUE(ioj->wr_sectors, ioi->wr_sectors, itv) / fctr);
-	cprintf_u64(2, 10,
+	cprintf_u64(out_fp,2, 10,
 		    (unsigned long long) rd_sec / fctr,
 		    (unsigned long long) wr_sec / fctr);
-	printf("\n");
+	fprintf(out_fp,"\n");
 }
 
 /*
@@ -1443,7 +1445,7 @@ static void write_stats(int curr, struct tm *rectime)
 		xprintf0(--tab, "}");
 	}
 	else {
-		printf("\n");
+		fprintf(out_fp, "\n");
 	}
 }
 
@@ -1557,7 +1559,7 @@ void rw_io_stat_loop(long int count, struct tm *rectime)
  * Main entry to the iostat program.
  ***************************************************************************
  */
-int iostat_main(int argc, char **argv)
+int iostat_main(int argc, char **argv, int fd)
 {
 	int it = 0;
 	int opt = 1;
@@ -1869,15 +1871,17 @@ int iostat_main(int argc, char **argv)
 
 	get_localtime(&rectime, 0);
 
+	out_fp = fdopen(fd, "w");
+
 	/* Get system name, release number and hostname */
 	uname(&header);
 	if (print_gal_header(&rectime, header.sysname, header.release,
 			     header.nodename, header.machine, cpu_nr,
-			     DISPLAY_JSON_OUTPUT(flags))) {
+			     DISPLAY_JSON_OUTPUT(flags), out_fp)) {
 		flags |= I_D_ISO;
 	}
 	if (!DISPLAY_JSON_OUTPUT(flags)) {
-		printf("\n");
+		fprintf(out_fp,"\n");
 	}
 
 	/* Set a handler for SIGALRM */
@@ -1892,6 +1896,7 @@ int iostat_main(int argc, char **argv)
 	/* Free structures */
 	io_sys_free();
 	sfree_dev_list();
-
+	fclose(out_fp);
+	out_fp = NULL;
 	return 0;
 }
