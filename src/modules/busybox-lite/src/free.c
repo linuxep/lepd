@@ -25,6 +25,7 @@
 #ifdef __linux__
 # include <sys/sysinfo.h>
 #endif
+#include <fcntl.h>
 
 struct globals {
 	unsigned mem_unit;
@@ -68,14 +69,14 @@ static unsigned long get_cache_from_meminfo(void)
        return cached;  
 }
  
-int free_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
+int free_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 //int free_main(int argc UNUSED_PARAM, char **argv IF_NOT_DESKTOP(UNUSED_PARAM))
 {
 	struct sysinfo info;
 	unsigned long long cached; 
 
 	INIT_G();
-
+    
 #if ENABLE_DESKTOP
 	
 	G.unit_steps = 10;
@@ -106,7 +107,9 @@ int free_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	/* Kernels prior to 2.4.x will return info.mem_unit==0, so cope... */
 	G.mem_unit = (info.mem_unit ? info.mem_unit : 1);
 
-	printf("           %13s%13s%13s%13s%13s%13s\n",
+    FILE *fp = fdopen(fd, "w");
+
+	fprintf(fp,"           %13s%13s%13s%13s%13s%13s\n",
 		"total",
 		"used",
 		"free",
@@ -121,8 +124,8 @@ int free_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 #define FIELDS_3 (FIELDS_6 + 3*6)  
 #define FIELDS_2 (FIELDS_6 + 4*6) 
 
-	printf("Mem:       "); 	
-	printf(FIELDS_6,
+	fprintf(fp,"Mem:       "); 	
+	fprintf(fp,FIELDS_6,
 		scale(info.totalram),
 		scale(info.totalram - info.freeram),
 		scale(info.freeram),
@@ -133,19 +136,19 @@ int free_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	/* Show alternate, more meaningful busy/free numbers by counting
 	 * buffer cache as free memory (make it "-/+ buffers/cache"
 	 * if/when we add support for "cached" column): */
-	printf("-/+ buffers/cache:      "); 
-	printf(FIELDS_2,
+	fprintf(fp,"-/+ buffers/cache:      "); 
+	fprintf(fp,FIELDS_2,
 		scale(info.totalram - info.freeram - info.bufferram) - cached,
 		scale(info.freeram + info.bufferram) + cached
 	);
 #if BB_MMU
-	printf("Swap:     ");
-	printf(FIELDS_3,
+	fprintf(fp,"Swap:     ");
+	fprintf(fp,FIELDS_3,
 		scale(info.totalswap),
 		scale(info.totalswap - info.freeswap),
 		scale(info.freeswap)
 	);
 #endif
-
+	fclose(fp);
 	return EXIT_SUCCESS;
 }
