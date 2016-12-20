@@ -228,7 +228,7 @@ void cprintf_pc
 void cprintf_s
 	(int, char *, char *);
 void cprintf_u64
-	(int, int, ...);
+	(FILE*, int, int, ...);
 void cprintf_x
 	(int, int, ...);
 char *device_name

@@ -1110,7 +1110,7 @@ void init_colors(void)
  * @width	Output width.
  ***************************************************************************
 */
-void cprintf_u64(int num, int width, ...)
+void cprintf_u64(FILE* fp, int num, int width, ...)
 {
 	int i;
 	uint64_t val;
@@ -1126,8 +1126,8 @@ void cprintf_u64(int num, int width, ...)
 		else {
 			printf("%s", sc_int_stat);
 		}
-		printf(" %*"PRIu64, width, val);
-		printf("%s", sc_normal);
+		fprintf(fp," %*"PRIu64, width, val);
+		fprintf(fp,"%s", sc_normal);
 	}
 
 	va_end(args);
