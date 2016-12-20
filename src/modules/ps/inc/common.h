@@ -261,7 +261,7 @@ typedef struct sf_node {
 /********************* UNDECIDED GLOBALS **************/
 
 /* output.c */
-extern void show_one_proc(const proc_t *restrict const p, const format_node *restrict fmt);
+extern void show_one_proc(const proc_t *restrict const p, const format_node *restrict fmt, FILE *out_fp);
 extern void print_format_specifiers(void);
 extern const aix_struct *search_aix_array(const int findme);
 extern const shortsort_struct *search_shortsort_array(const int findme);

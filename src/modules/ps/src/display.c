@@ -337,7 +337,7 @@ static int want_this_proc_pcpu(proc_t *buf){
 }
 
 /***** just display */
-static void simple_spew(void){
+static void simple_spew(FILE *out_fp){
   static proc_t buf, buf2;       // static avoids memset
   PROCTAB* ptp;
   pid_t* pidlist;
@@ -371,7 +371,7 @@ static void simple_spew(void){
   case TF_show_proc:                   // normal non-thread output
     while(readproc(ptp,&buf)){
       if(want_this_proc(&buf)){
-        show_one_proc(&buf, proc_format_list);
+        show_one_proc(&buf, proc_format_list,out_fp);
       }
     }
     break;
@@ -380,16 +380,16 @@ static void simple_spew(void){
       // must still have the process allocated
       while(readtask(ptp,&buf,&buf2)){
         if(!want_this_proc(&buf)) continue;
-        show_one_proc(&buf2, task_format_list);
+        show_one_proc(&buf2, task_format_list,out_fp);
       }
     }
     break;
   case TF_show_proc|TF_show_task:      // m and -m options
     while(readproc(ptp,&buf)){
       if(want_this_proc(&buf)){
-        show_one_proc(&buf, proc_format_list);
+        show_one_proc(&buf, proc_format_list,out_fp);
         // must still have the process allocated
-        while(readtask(ptp,&buf,&buf2)) show_one_proc(&buf2, task_format_list);
+        while(readtask(ptp,&buf,&buf2)) show_one_proc(&buf2, task_format_list,out_fp);
       }
      }
     break;
@@ -397,7 +397,7 @@ static void simple_spew(void){
     while(readproc(ptp,&buf)){
       if(want_this_proc(&buf)){
         // must still have the process allocated
-        while(readtask(ptp,&buf,&buf2)) show_one_proc(&buf2, task_format_list);
+        while(readtask(ptp,&buf,&buf2)) show_one_proc(&buf2, task_format_list,out_fp);
       }
    }
     break;
@@ -452,14 +452,14 @@ static int compare_two_procs(const void *a, const void *b){
 }
 
 /***** show pre-sorted array of process pointers */
-static void show_proc_array(PROCTAB *restrict ptp, int n){
+static void show_proc_array(PROCTAB *restrict ptp, int n, FILE *out_fp){
   proc_t **p = processes;
   while(n--){
-    if(thread_flags & TF_show_proc) show_one_proc(*p, proc_format_list);
+    if(thread_flags & TF_show_proc) show_one_proc(*p, proc_format_list,out_fp);
     if(thread_flags & TF_show_task){
       static proc_t buf2;         // static avoids memset
       // must still have the process allocated
-      while(readtask(ptp,*p,&buf2)) show_one_proc(&buf2, task_format_list);
+      while(readtask(ptp,*p,&buf2)) show_one_proc(&buf2, task_format_list,out_fp);
     }
     p++;
   }
@@ -468,7 +468,7 @@ static void show_proc_array(PROCTAB *restrict ptp, int n){
 /***** show tree */
 /* this needs some optimization work */
 #define ADOPTED(x) 1
-static void show_tree(const int self, const int n, const int level, const int have_sibling){
+static void show_tree(const int self, const int n, const int level, const int have_sibling, FILE *out_fp){
   int i = 0;
   if(level){
     /* add prefix of "+" or "L" */
@@ -476,7 +476,7 @@ static void show_tree(const int self, const int n, const int level, const int ha
     else             forest_prefix[level-1] = 'L';
     forest_prefix[level] = '\0';
   }
-  show_one_proc(processes[self],format_list);  /* first show self */
+  show_one_proc(processes[self],format_list,out_fp);  /* first show self */
   for(;;){  /* look for children */
     if(i >= n) return; /* no children */
     if(processes[i]->ppid == processes[self]->XXXID) break;
@@ -498,9 +498,9 @@ static void show_tree(const int self, const int n, const int level, const int ha
     else
       if(processes[i+1]->ppid != self_pid) more_children = 0;
     if(self_pid==1 && ADOPTED(processes[i]) && forest_type!='u')
-      show_tree(i++, n, level,   more_children);
+      show_tree(i++, n, level,   more_children, out_fp);
     else
-      show_tree(i++, n, level+1, more_children);
+      show_tree(i++, n, level+1, more_children, out_fp);
     if(!more_children) break;
   }
   /* chop prefix that children added -- do we need this? */
@@ -509,7 +509,7 @@ static void show_tree(const int self, const int n, const int level, const int ha
 }
 
 /***** show forest */
-static void show_forest(const int n){
+static void show_forest(const int n, FILE *out_fp){
   int i = n;
   int j;
   while(i--){   /* cover whole array looking for trees */
@@ -517,7 +517,7 @@ static void show_forest(const int n){
     while(j--){   /* search for parent: if none, i is a tree! */
       if(processes[j]->XXXID == processes[i]->ppid) goto not_root;
     }
-    show_tree(i,n,0,0);
+    show_tree(i,n,0,0,out_fp);
 not_root:
     ;
   }
@@ -533,7 +533,7 @@ static int want_this_proc_nop(proc_t *dummy){
 
 /***** sorted or forest */
 #define MAX_LINES 50
-static void fancy_spew(void){
+static void fancy_spew(FILE *out_fp){
   proc_data_t *pd = NULL;
   PROCTAB *restrict ptp;
   int n = 0;  /* number of processes & index into array */
@@ -557,8 +557,8 @@ static void fancy_spew(void){
   if(!n) return;  /* no processes */
   if(forest_type) prep_forest_sort();
   qsort(processes, n, sizeof(proc_t*), compare_two_procs);
-  if(forest_type) show_forest(n);
-  else show_proc_array(ptp,n);
+  if(forest_type) show_forest(n,out_fp);
+  else show_proc_array(ptp,n,out_fp);
   closeproc(ptp);
   freeproc(*processes);
 }
@@ -611,7 +611,7 @@ static void arg_check_conflicts(void)
 }
 
 /***** no comment */
-int ps_main(int argc, char *argv[]){
+int ps_main(int argc, char *argv[], int out_fd){
 
   //reset_sortformat();	
   //atexit(close_stdout);
@@ -663,13 +663,15 @@ int ps_main(int argc, char *argv[]){
   trace("======= ps output follows =======\n");
 
   init_output(); /* must be between parser and output */
+  FILE *out_fp = fdopen(out_fd, "w");
 
   lists_and_needs();
 
-  if(forest_type || sort_list) fancy_spew(); /* sort or forest */
-  else simple_spew(); /* no sort, no forest */
-  show_one_proc((proc_t *)-1,format_list); /* no output yet? */
+  if(forest_type || sort_list) fancy_spew(out_fp); /* sort or forest */
+  else simple_spew(out_fp); /* no sort, no forest */
+  show_one_proc((proc_t *)-1,format_list,out_fp); /* no output yet? */
 
+  fclose(out_fp);
   reset_sortformat();	
   return 0;
 }
