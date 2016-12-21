@@ -20,8 +20,233 @@
 
 static int __jrpc_server_start(struct jrpc_server *server);
 static void jrpc_procedure_destroy(struct jrpc_procedure *procedure);
+static void async_cb (EV_P_ ev_async *w, int revents);
 
 struct ev_loop *loop;
+
+/* An item in the connection queue. */
+typedef struct conn_queue_item CQ_ITEM;
+struct conn_queue_item {
+	int               sfd;
+	char szAddr[16];
+	int port;
+	CQ_ITEM          *next;
+	void *data;
+};
+
+/* A connection queue. */
+typedef struct conn_queue CQ;
+struct conn_queue {
+	CQ_ITEM *head;
+	CQ_ITEM *tail;
+	pthread_mutex_t lock;
+};
+
+/*
+ * Initializes a connection queue.
+ */
+static void cq_init(CQ *cq) {
+	pthread_mutex_init(&cq->lock, NULL);
+	cq->head = NULL;
+	cq->tail = NULL;
+}
+
+/*
+ * Looks for an item on a connection queue, but doesn't block if there isn't
+ * one.
+ * Returns the item, or NULL if no item is available
+ */
+static CQ_ITEM *cq_pop(CQ *cq) {
+	CQ_ITEM *item;
+
+	pthread_mutex_lock(&cq->lock);
+	item = cq->head;
+	if (NULL != item) {
+		cq->head = item->next;
+		if (NULL == cq->head)
+			cq->tail = NULL;
+	}
+	pthread_mutex_unlock(&cq->lock);
+
+	return item;
+}
+
+/*
+ * Adds an item to a connection queue.
+ */
+static void cq_push(CQ *cq, CQ_ITEM *item) {
+	item->next = NULL;
+
+
+	pthread_mutex_lock(&cq->lock);
+	if (NULL == cq->tail)
+		cq->head = item;
+	else
+		cq->tail->next = item;
+	cq->tail = item;
+	pthread_mutex_unlock(&cq->lock);
+}
+
+typedef struct {
+	pthread_t thread_id;         /* unique ID of this thread */
+	struct ev_loop *loop;     /* libev loop this thread uses */
+	struct ev_async async_watcher;   /* async watcher for new connect */
+	struct conn_queue *new_conn_queue; /* queue of new connections to handle */
+} WORK_THREAD;
+
+/*
+ * Each libev instance has a async_watcher, which other threads
+ * can use to signal that they've put a new connection on its queue.
+ */
+static WORK_THREAD *work_threads;
+/*
+ * Number of worker threads that have finished setting themselves up.
+ */
+static int init_count = 0;
+static pthread_mutex_t init_lock;
+static pthread_cond_t init_cond;
+static int round_robin = 0;
+
+/*
+ * Worker thread: main event loop
+ */
+static void *worker_libev(void *arg) {
+	WORK_THREAD *me = arg;
+
+
+	/* Any per-thread setup can happen here; thread_init() will block until
+	 * all threads have finished initializing.
+	 */
+
+
+	pthread_mutex_lock(&init_lock);
+	init_count++;
+	pthread_cond_signal(&init_cond);
+	pthread_mutex_unlock(&init_lock);
+
+
+	me->thread_id = pthread_self();
+	ev_loop(me->loop, 0);
+	return NULL;
+}
+
+/*
+ * Creates a worker thread.
+ */
+static void create_worker(void *(*func)(void *), void *arg) {
+	pthread_t       thread;
+	pthread_attr_t  attr;
+	int             ret;
+
+
+	pthread_attr_init(&attr);
+
+
+	if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
+		fprintf(stderr, "Can't create thread: %s\n",
+				strerror(ret));
+		exit(1);
+	}
+}
+
+/*
+ * Set up a thread's information.
+ */
+static void setup_thread(WORK_THREAD *me) {
+	me->loop = ev_loop_new(0);
+	if (! me->loop) {
+		fprintf(stderr, "Can't allocate event base\n");
+		exit(1);
+	}
+
+
+	me->async_watcher.data = me;
+	/* Listen for notifications from other threads */
+	ev_async_init(&me->async_watcher, async_cb);
+	ev_async_start(me->loop, &me->async_watcher);
+
+
+	me->new_conn_queue = malloc(sizeof(struct conn_queue));
+	if (me->new_conn_queue == NULL) {
+		perror("Failed to allocate memory for connection queue\n");
+		exit(EXIT_FAILURE);
+	}
+	cq_init(me->new_conn_queue);
+}
+
+void thread_init()
+{
+	int nthreads = 5;
+	pthread_mutex_init(&init_lock, NULL);
+	pthread_cond_init(&init_cond, NULL);
+	work_threads = calloc(nthreads, sizeof(WORK_THREAD));
+	if (! work_threads) {
+		perror("Can't allocate thread descriptors\n");
+		exit(1);
+	}
+
+	int i = 0;
+	for (i = 0; i < nthreads; i++) {
+		setup_thread(&work_threads[i]);
+	}
+
+	/* Create threads after we've done all the libevent setup. */
+	for (i = 0; i < nthreads; i++) {
+		create_worker(worker_libev, &work_threads[i]);
+	}
+
+	/* Wait for all the threads to set themselves up before returning. */
+	pthread_mutex_lock(&init_lock);
+	while (init_count < nthreads) {
+		pthread_cond_wait(&init_cond, &init_lock);
+	}
+	pthread_mutex_unlock(&init_lock);
+}
+
+void dispath_conn(int anewfd,struct sockaddr_in asin, void*data)
+{
+	// set the new connect item
+	CQ_ITEM *lpNewItem = calloc(1,sizeof(CQ_ITEM));
+	if (! lpNewItem) {
+		perror("Can't allocate connection item\n");
+		exit(1);
+	}
+
+	lpNewItem->sfd = anewfd;
+	lpNewItem->data = data;
+	strcpy(lpNewItem->szAddr,(char*)inet_ntoa(asin.sin_addr));
+	lpNewItem->port = asin.sin_port;
+
+
+	// libev default loop, accept the new connection, round-robin 
+	// dispath to a work_thread.
+	int robin = round_robin%init_count;
+	cq_push(work_threads[robin].new_conn_queue,lpNewItem);
+	ev_async_send(work_threads[robin].loop, &(work_threads[robin].async_watcher));
+	printf("pushed fd:%d to thread:%d\n", anewfd, robin);
+	round_robin++;
+}
+
+void accept_callback2(struct ev_loop *loop, ev_io *w, int revents)
+{
+	int newfd;
+	struct sockaddr_in sin;
+	socklen_t addrlen = sizeof(struct sockaddr);
+	while ((newfd = accept(w->fd, (struct sockaddr *)&sin, &addrlen)) < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK) 
+		{
+			//these are transient, so don't log anything.
+			continue; 
+		}
+		else
+		{
+			printf("accept error.[%s]\n", strerror(errno));
+			break;
+		}
+	}
+	dispath_conn(newfd,sin,w->data);
+}
 
 // get sockaddr, IPv4 or IPv6:
 static void *get_in_addr(struct sockaddr *sa) {
@@ -106,17 +331,17 @@ static int eval_request(struct jrpc_server *server,
 	if (method != NULL && method->type == cJSON_String) {
 		params = cJSON_GetObjectItem(root, "params");
 		if (params == NULL|| params->type == cJSON_Array
-		|| params->type == cJSON_Object) {
+				|| params->type == cJSON_Object) {
 			id = cJSON_GetObjectItem(root, "id");
 			if (id == NULL|| id->type == cJSON_String
-			|| id->type == cJSON_Number) {
-			//We have to copy ID because using it on the reply and deleting the response Object will also delete ID
+					|| id->type == cJSON_Number) {
+				//We have to copy ID because using it on the reply and deleting the response Object will also delete ID
 				cJSON * id_copy = NULL;
 				if (id != NULL)
 					id_copy =
-							(id->type == cJSON_String) ? cJSON_CreateString(
-									id->valuestring) :
-									cJSON_CreateNumber(id->valueint);
+						(id->type == cJSON_String) ? cJSON_CreateString(
+								id->valuestring) :
+						cJSON_CreateNumber(id->valueint);
 				if (server->debug_level)
 					printf("Method Invoked: %s\n", method->valuestring);
 				return invoke_procedure(server, conn, method->valuestring,
@@ -132,6 +357,7 @@ static int eval_request(struct jrpc_server *server,
 static void close_connection(struct ev_loop *loop, ev_io *w) {
 	ev_io_stop(loop, w);
 	close(((struct jrpc_connection *) w)->fd);
+	printf("closed fd:%d\n", ((struct jrpc_connection *) w)->fd);
 	free(((struct jrpc_connection *) w)->buffer);
 	free(((struct jrpc_connection *) w));
 }
@@ -197,7 +423,7 @@ static void connection_cb(struct ev_loop *loop, ev_io *w, int revents) {
 				}
 				send_error(conn, JRPC_PARSE_ERROR,
 						strdup(
-								"Parse error. Invalid JSON was received by the server."),
+							"Parse error. Invalid JSON was received by the server."),
 						NULL);
 				return close_connection(loop, w);
 			}
@@ -209,109 +435,56 @@ static void connection_cb(struct ev_loop *loop, ev_io *w, int revents) {
 // Make the code work with both the old (ev_loop/ev_unloop)
 // and new (ev_run/ev_break) versions of libev.
 #ifdef EVUNLOOP_ALL
-  #define EV_RUN ev_loop
-  #define EV_BREAK ev_unloop
-  #define EVBREAK_ALL EVUNLOOP_ALL
+#define EV_RUN ev_loop
+#define EV_BREAK ev_unloop
+#define EVBREAK_ALL EVUNLOOP_ALL
 #else
-  #define EV_RUN ev_run
-  #define EV_BREAK ev_break
+#define EV_RUN ev_run
+#define EV_BREAK ev_break
 #endif
 
-#ifdef _MULTITHREAD
-static void rpccmd_loop_thread(void *arg) {
-	struct jrpc_connection *connection_watcher = (struct jrpc_connection *)arg;
-	struct ev_loop* loop2 = ev_loop_new(0);
+static	void
+async_cb (EV_P_ ev_async *w, int revents)
+{
+	CQ_ITEM *item;
 
-	printf("in thread:%s\n", __func__);
-	if (loop2) {
-		ev_io_start(loop2, &connection_watcher->io);
-		printf("in thread:%s 22\n", __func__);
-		EV_RUN(loop2, 0);
-		printf("in thread:%s 33\n", __func__);
-	}
-	//free(connection_watcher->buffer);
-	//free(connection_watcher);
-	ev_loop_destroy(loop2);
-}
+	while(
+	item = cq_pop(((WORK_THREAD*)(w->data))->new_conn_queue))
 
-static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
-	printf("accept cb..\n");
-	char s[INET6_ADDRSTRLEN];
-	struct jrpc_connection *connection_watcher;
-	connection_watcher = malloc(sizeof(struct jrpc_connection));
-	struct sockaddr_storage their_addr; // connector's address information
-	socklen_t sin_size;
-	sin_size = sizeof their_addr;
-	connection_watcher->fd = accept(w->fd, (struct sockaddr *) &their_addr,
-			&sin_size);
-	if (connection_watcher->fd == -1) {
-		perror("accept");
-		free(connection_watcher);
-	} else {
-		if (((struct jrpc_server *) w->data)->debug_level) {
-			inet_ntop(their_addr.ss_family,
-					get_in_addr((struct sockaddr *) &their_addr), s, sizeof s);
-			printf("server: got connection from %s\n", s);
-		}
-
+	{
+		char s[INET6_ADDRSTRLEN];
+		struct jrpc_connection *connection_watcher;
+		connection_watcher = malloc(sizeof(struct jrpc_connection));
+		connection_watcher->fd = item->sfd;
 		ev_io_init(&connection_watcher->io, connection_cb,
 				connection_watcher->fd, EV_READ);
 		//copy pointer to struct jrpc_server
-		connection_watcher->io.data = w->data;
+		connection_watcher->io.data = item->data;
 		connection_watcher->buffer_size = 1500;
 		connection_watcher->buffer = malloc(1500);
 		memset(connection_watcher->buffer, 0, 1500);
 		connection_watcher->pos = 0;
 		//copy debug_level, struct jrpc_connection has no pointer to struct jrpc_server
 		connection_watcher->debug_level =
-				((struct jrpc_server *) w->data)->debug_level;
-		pthread_t thread;
-		pthread_create(&thread, NULL, rpccmd_loop_thread, connection_watcher);
-		printf("thread create okay\n");
+			((struct jrpc_server *) item->data)->debug_level;
+
+		ev_io_start(((WORK_THREAD*)(w->data))->loop,&connection_watcher->io);
+
+		printf("thread[%lu] accept: fd :%d  addr:%s port:%d\n",((WORK_THREAD*)(w->data))->thread_id,item->sfd,item->szAddr,item->port);
+
+		free(item);
+		item = NULL;
 	}
 }
-#else
-static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
-	char s[INET6_ADDRSTRLEN];
-	struct jrpc_connection *connection_watcher;
-	connection_watcher = malloc(sizeof(struct jrpc_connection));
-	struct sockaddr_storage their_addr; // connector's address information
-	socklen_t sin_size;
-	sin_size = sizeof their_addr;
-	connection_watcher->fd = accept(w->fd, (struct sockaddr *) &their_addr,
-			&sin_size);
-	if (connection_watcher->fd == -1) {
-		perror("accept");
-		free(connection_watcher);
-	} else {
-		if (((struct jrpc_server *) w->data)->debug_level) {
-			inet_ntop(their_addr.ss_family,
-					get_in_addr((struct sockaddr *) &their_addr), s, sizeof s);
-			printf("server: got connection from %s\n", s);
-		}
-		ev_io_init(&connection_watcher->io, connection_cb,
-				connection_watcher->fd, EV_READ);
-		//copy pointer to struct jrpc_server
-		connection_watcher->io.data = w->data;
-		connection_watcher->buffer_size = 1500;
-		connection_watcher->buffer = malloc(1500);
-		memset(connection_watcher->buffer, 0, 1500);
-		connection_watcher->pos = 0;
-		//copy debug_level, struct jrpc_connection has no pointer to struct jrpc_server
-		connection_watcher->debug_level =
-				((struct jrpc_server *) w->data)->debug_level;
-		ev_io_start(loop, &connection_watcher->io);
-	}
-}
-#endif
+
 
 int jrpc_server_init(struct jrpc_server *server, int port_number) {
-    loop = EV_DEFAULT;
-    return jrpc_server_init_with_ev_loop(server, port_number, loop);
+	loop = EV_DEFAULT;
+	return jrpc_server_init_with_ev_loop(server, port_number, loop);
 }
 
 int jrpc_server_init_with_ev_loop(struct jrpc_server *server, 
-        int port_number, struct ev_loop *loop) {
+		int port_number, struct ev_loop *loop) {
 	memset(server, 0, sizeof(struct jrpc_server));
 	server->loop = loop;
 	server->port_number = port_number;
@@ -322,6 +495,7 @@ int jrpc_server_init_with_ev_loop(struct jrpc_server *server,
 		server->debug_level = strtol(debug_level_env, NULL, 10);
 		printf("JSONRPC-C Debug level %d\n", server->debug_level);
 	}
+		server->debug_level = 5;
 	return __jrpc_server_start(server);
 }
 
@@ -344,7 +518,7 @@ static int __jrpc_server_start(struct jrpc_server *server) {
 		return 1;
 	}
 
-// loop through all the results and bind to the first we can
+	// loop through all the results and bind to the first we can
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol))
 				== -1) {
@@ -389,16 +563,19 @@ static int __jrpc_server_start(struct jrpc_server *server) {
 	if (server->debug_level)
 		printf("server: waiting for connections...\n");
 
-	ev_io_init(&server->listen_watcher, accept_cb, sockfd, EV_READ);
+#ifdef _MULTITHREAD
+	thread_init();
+#endif
+
+	ev_io_init(&server->listen_watcher, accept_callback2, sockfd, EV_READ);
 	server->listen_watcher.data = server;
 	ev_io_start(server->loop, &server->listen_watcher);
+
 	return 0;
 }
 
 void jrpc_server_run(struct jrpc_server *server){
-	printf("in func:%s\n", __func__);
 	EV_RUN(server->loop, 0);
-	printf("in func:%s 22\n", __func__);
 }
 
 int jrpc_server_stop(struct jrpc_server *server) {
@@ -463,7 +640,7 @@ int jrpc_deregister_procedure(struct jrpc_server *server, char *name) {
 			server->procedure_count--;
 			if (server->procedure_count){
 				struct jrpc_procedure * ptr = realloc(server->procedures,
-					sizeof(struct jrpc_procedure) * server->procedure_count);
+						sizeof(struct jrpc_procedure) * server->procedure_count);
 				if (!ptr){
 					perror("realloc");
 					return -1;
