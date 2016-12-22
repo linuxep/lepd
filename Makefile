@@ -27,7 +27,8 @@ CROSS_COMPILE=arm-linux-gnueabi-
 CC=$(CROSS_COMPILE)gcc
 AR=$(CROSS_COMPILE)ar
 LD=$(CROSS_COMPILE)ld
-CFLAGS := -Wl,-Bstatic -lev -Wl,-Bdynamic -lm -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC -D_MULTITHREAD -Wl,-Bdynamic -lpthread
+CFLAGS := -lev -lm -lrt -lpthread -static -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC -D_MULTITHREAD
+#CFLAGS := -Wl,-Bstatic -lev -Wl,-Bdynamic -lm -I$(PROJECT_INC_DIR) -D_BUILTIN_FUNC -D_MULTITHREAD -Wl,-Bdynamic -lpthread
 LDFLAG := -L$(PROJECT_EV_DIR)
 endif
 

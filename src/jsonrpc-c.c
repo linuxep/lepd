@@ -495,7 +495,7 @@ int jrpc_server_init_with_ev_loop(struct jrpc_server *server,
 		server->debug_level = strtol(debug_level_env, NULL, 10);
 		printf("JSONRPC-C Debug level %d\n", server->debug_level);
 	}
-		server->debug_level = 5;
+		//server->debug_level = 5;
 	return __jrpc_server_start(server);
 }
 

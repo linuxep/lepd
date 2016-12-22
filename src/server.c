@@ -43,36 +43,6 @@ cJSON * say_hello(jrpc_context * ctx, cJSON * params, cJSON *id)
 	return cJSON_CreateString("Hello!lepdendstring");
 }
 
-cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
-{
-	int fd;
-	int size;
-	cJSON *result;
-	unsigned char proc_buff[PROC_BUFF];
-	unsigned char proc_path[50];
-
-	if (!ctx->data)
-		return NULL;
-
-	snprintf(proc_path, 50, "/proc/%s", ctx->data);
-	DEBUG_PRINT("read_proc: path: %s\n", proc_path);
-
-	fd = open(proc_path, O_RDONLY);
-	if (fd < 0) {
-		printf("Open file:%s error.\n", proc_path);
-		return NULL;
-	}
-
-	memset(proc_buff, 0, PROC_BUFF);
-	size = read(fd, proc_buff, PROC_BUFF);
-	close(fd);
-	DEBUG_PRINT("read %d bytes from %s\n", size, proc_path);
-	strcat(proc_buff, endstring);
-	return cJSON_CreateString(proc_buff);
-}
-
-//#ifdef _BUILTIN_FUNC
-
 #include "sysstat.h"
 #include "busybox.h"
 #include "procrank.h"
@@ -84,50 +54,83 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #define MAX_CMD_ARGV 32
 #define COMMAND(name) name##_main
 #define CMD_OUTPUT "./output.txt"
- 
+enum {
+	CMD_TYPE_NONE,
+	CMD_TYPE_SYS,
+	CMD_TYPE_PROC,
+	CMD_TYPE_BUILTIN,
+	CMD_TYPE_PERF,
+	CMD_TYPE_MAX,
+};
 typedef int (*builtin_func)(int argc, char **argv, int fd);
 typedef struct
 {
 	char* name;
+	int type;
+	pthread_mutex_t lock;
 	builtin_func func;
 
 } builtin_func_info;
 
 static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
+		.name = "sys",
+		.type = CMD_TYPE_SYS,
+		.func = NULL,
+	},
+	{
+		.name = "proc",
+		.type = CMD_TYPE_PROC,
+		.func = NULL,
+	},
+	{
+		.name = "perf",
+		.type = CMD_TYPE_PERF,
+		.func = NULL,
+	},
+	{
 		.name = "ps",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(ps),
 	},
 	{
 		.name = "iostat",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(iostat),
 	},
 	{
 		.name = "mpstat",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(mpstat),
 	},
 	{
 		.name = "free",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(free),
 	},
 	{
 		.name = "top",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(top),
 	},
 	{
 		.name = "procrank",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(procrank),
 	},
 	{
 		.name = "iotop",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(iotop),
 	},
 	{
 		.name = "df",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(df),
 	},
 	{
 		.name = "dmesg",
+		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(dmesg),
 	},
 	{
@@ -136,21 +139,70 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	},
 };
 
-builtin_func lookup_func(char* name){
-	int i = 0;
+void init_built_func_table(){
+	/*int i = 0;
+	for( ; i < LOOKUP_TABLE_COUNT; i++){
+		if(lookup_table[i].name == NULL)
+			return;
+		pthread_mutex_init(&lookup_table[i].lock, NULL);
+
+	}*/
+	builtin_func_info* p = lookup_table;
+	while(p->name != NULL){
+		pthread_mutex_init(&p->lock, NULL);
+		p++;
+	}
+}
+builtin_func_info* lookup_func(char* name){
+	/*int i = 0;
 	for( ; i < LOOKUP_TABLE_COUNT; i++){
 		if(lookup_table[i].name == NULL)
 			return NULL;
 		if(!strcmp(name, lookup_table[i].name))
-			return lookup_table[i].func;
+			return &lookup_table[i];
+	}*/
+	builtin_func_info* p = lookup_table;
+	while(p->name != NULL){
+		if(!strcmp(name, p->name))
+			return p;
+		p++;
 	}
 	return NULL;
 }
 
+cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
+{
+	int fd;
+	int size;
+	cJSON *result;
+	unsigned char proc_buff[PROC_BUFF];
+	unsigned char proc_path[50];
 
+	if (!ctx->data)
+		return NULL;
+
+	builtin_func_info* info = lookup_func("proc");
+	snprintf(proc_path, 50, "/proc/%s", ctx->data);
+
+
+	pthread_mutex_lock(&info->lock);
+	DEBUG_PRINT("read_proc: path: %s\n", proc_path);
+	fd = open(proc_path, O_RDONLY);
+	if (fd < 0) {
+		printf("Open file:%s error.\n", proc_path);
+		return NULL;
+	}
+
+	memset(proc_buff, 0, PROC_BUFF);
+	size = read(fd, proc_buff, PROC_BUFF);
+	close(fd);
+	DEBUG_PRINT("read %d bytes from %s\n", size, proc_path);
+	strcat(proc_buff, endstring);
+	pthread_mutex_unlock(&info->lock);
+	return cJSON_CreateString(proc_buff);
+}
 cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
-	DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
 	unsigned char cmd_buff[CMD_BUFF];
 
         if (!ctx->data)
@@ -167,8 +219,7 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
         char *r = strtok(p, c);  
   	argv[argc++] = r;
         
-	DEBUG_PRINT("func: %s\n", r);
-	builtin_func func = lookup_func(r);
+	builtin_func_info* info = lookup_func(r);
   
         while (r != NULL) {  
                 r = strtok(NULL, c);  
@@ -180,8 +231,10 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
         }
 
 	argv[argc] = NULL;;
-	if(func != NULL){
+	if(info->func != NULL){
+		pthread_mutex_lock(&info->lock);
 
+		DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
 		memset(cmd_buff, 0, CMD_BUFF);
  		fflush(stdout);
 		int fd[2];
@@ -192,7 +245,7 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 		//int bak_fd = dup(STDOUT_FILENO);
    		//int new_fd = dup2(fd[1], STDOUT_FILENO);
-                func(argc, argv, fd[1]);
+                info->func(argc, argv, fd[1]);
 		int size = read(fd[0], cmd_buff, CMD_BUFF- strlen(endstring) - 1);
 
                 //dup2(bak_fd, new_fd);
@@ -203,6 +256,9 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		DEBUG_PRINT("read size:%d\n", size);
 		strcat(cmd_buff, endstring);
 	        free(p);
+
+
+	        pthread_mutex_unlock(&info->lock);
 		return cJSON_CreateString(cmd_buff);
 
 	}
@@ -220,14 +276,17 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (!ctx->data)
 		return NULL;
 
+	builtin_func_info* info = lookup_func("sys");
 	fp = popen(ctx->data, "r");
 	if (fp) {
+		pthread_mutex_lock(&info->lock);
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1 , fp);
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
-		strcat(cmd_buff, endstring);
+		strcat(cmd_buff, endstring);	
+		pthread_mutex_unlock(&info->lock);
 		return cJSON_CreateString(cmd_buff);
 	}
 	return NULL;
@@ -242,6 +301,11 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 	if (!ctx->data)
 		return NULL;
+
+
+	builtin_func_info* info = lookup_func("perf");
+	pthread_mutex_lock(&info->lock);
+
 	DEBUG_PRINT("run_perf_cmd\n");
 	system(ctx->data);
 	fp = popen("perf report", "r");
@@ -251,9 +315,12 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
 		pclose(fp);
 
-		strcat(cmd_buff, endstring);
+		strcat(cmd_buff, endstring);	
+		pthread_mutex_unlock(&info->lock);
 		return cJSON_CreateString(cmd_buff);
 	}
+
+	pthread_mutex_unlock(&info->lock);
 	return NULL;
 }
 cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
@@ -275,6 +342,8 @@ int main(int argc, char **argv)
 			/* Enable debugging. */
 	} else
 		daemon(0, 0);
+
+	init_built_func_table();
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
@@ -303,7 +372,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
-	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
@@ -312,7 +381,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
 
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
-	//jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
 	jrpc_server_run(&my_server);
 	jrpc_server_destroy(&my_server);
 	return 0;
