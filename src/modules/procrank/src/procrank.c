@@ -143,7 +143,6 @@ int procrank_main(int argc, char *argv[], int out_fd) {
     int arg;
     size_t i, j;
 
-    signal(SIGPIPE, SIG_IGN);
     compfn = &sort_by_pss;
     order = -1;
     ws = WS_OFF;

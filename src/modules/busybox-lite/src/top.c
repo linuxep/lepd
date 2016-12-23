@@ -726,12 +726,13 @@ static void reset_term(void)
 # endif
 	}
 }
-
+#if 0
 static void sig_catcher(int sig)
 {
 	reset_term();
 	kill_myself_with_sig(sig);
 }
+#endif
 
 #endif /* FEATURE_USE_TERMIOS */
 
@@ -1171,7 +1172,7 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		tcsetattr_stdin_TCSANOW(&new_settings);
 	}
 
-	bb_signals(BB_FATAL_SIGS, sig_catcher);
+	//bb_signals(BB_FATAL_SIGS, sig_catcher);
 
 	/* Eat initial input, if any */
 	scan_mask = handle_input(scan_mask, 0);

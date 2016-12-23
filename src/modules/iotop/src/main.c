@@ -187,9 +187,6 @@ iotop_main(int argc, char *argv[], int fd)
     nl_init();
 
 
-    if (signal(SIGINT, sig_handler) == SIG_ERR)
-        perror("signal");
-
     struct xxxid_stats *ps = NULL;
     struct xxxid_stats *cs = NULL;
 

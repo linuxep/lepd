@@ -1413,11 +1413,6 @@ void rw_mpstat_loop(int dis_hdr, int rows, FILE* fp)
 		exit(0);
 	}
 
-	/* Set a handler for SIGALRM */
-	memset(&alrm_act, 0, sizeof(alrm_act));
-	alrm_act.sa_handler = alarm_handler;
-	sigaction(SIGALRM, &alrm_act, NULL);
-	alarm(interval);
 
 	/* Save the first stats collected. Will be used to compute the average */
 	mp_tstamp[2] = mp_tstamp[0];
@@ -1435,7 +1430,7 @@ void rw_mpstat_loop(int dis_hdr, int rows, FILE* fp)
 		/* Set a handler for SIGINT */
 		memset(&int_act, 0, sizeof(int_act));
 		int_act.sa_handler = int_handler;
-		sigaction(SIGINT, &int_act, NULL);
+		//sigaction(SIGINT, &int_act, NULL);
 	}
 
 	//pause();
