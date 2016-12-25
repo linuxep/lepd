@@ -165,7 +165,8 @@ int nl_xxxid_info(pid_t xxxid, int isp, struct xxxid_stats *stats)
             !NLMSG_OK((&msg.n), rv))
     {
         struct nlmsgerr *err = NLMSG_DATA(&msg);
-        fprintf(stderr, "fatal reply error, %d\n", err->error);
+        fprintf(stderr, "fatal reply error, %d,,, pid:%d\n", err->error, xxxid);
+        fprintf(stderr, "msg.n.nlmsg_type:%d: NLMSG_ERROR:%d\n", msg.n.nlmsg_type, NLMSG_ERROR);
         return -1;
     }
 
@@ -286,6 +287,8 @@ struct xxxid_stats *fetch_data(int processes, filter_callback filter)
     while ((pid = pidgen_next(pg)) > 0)
     {
         struct xxxid_stats *s = make_stats(pid, processes);
+	if (!s)
+		continue;
 
         if (filter && filter(s))
             free_stats(s);
