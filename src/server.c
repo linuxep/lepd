@@ -102,6 +102,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(iostat),
 	},
 	{
+		.name = "cpuinfo",
+		.func = COMMAND(cpuinfo),
+	},
+	{
 		.name = "mpstat",
 		.func = COMMAND(mpstat),
 	},
@@ -305,6 +309,7 @@ int main(int argc, char **argv)
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDmesg", "dmesg");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCpuInfo", "cpuinfo");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
 
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
