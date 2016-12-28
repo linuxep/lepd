@@ -1554,7 +1554,7 @@ proc_data_t *readproctab2(int(*want_proc)(proc_t *buf), int(*want_task)(proc_t *
 // Try try yet again, this time treating processes and threads the same...
 proc_data_t *readproctab3 (int(*want_task)(proc_t *buf), PROCTAB *restrict const PT) {
     static proc_data_t pd;
-    proc_t **tab = NULL;
+    static proc_t **tab = NULL;
     unsigned n_alloc = 0;
     unsigned n_used = 0;
     proc_t *p = NULL;
@@ -1562,7 +1562,8 @@ proc_data_t *readproctab3 (int(*want_task)(proc_t *buf), PROCTAB *restrict const
     for (;;) {
         if (n_alloc == n_used) {
             n_alloc = n_alloc*5/4+30;  // grow by over 25%
-            tab = xrealloc(tab,sizeof(proc_t*)*n_alloc);
+            //tab = xrealloc(tab,sizeof(proc_t*)*n_alloc);
+            tab = realloc(tab,sizeof(proc_t*)*n_alloc);
         }
         // let this next guy allocate the necessary proc_t storage
         // (or recycle it) since he can't tolerate realloc relocations

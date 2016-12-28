@@ -548,18 +548,19 @@ static void fancy_spew(FILE *out_fp){
   }else{
     pd = readproctab2(want_this_proc_pcpu, (void*)0xdeadbeaful, ptp);
   }
-  //n = pd->n;
-  n = pd->n < MAX_LINES ? pd->n : MAX_LINES;
+  n = pd->n;
+  //n = pd->n < MAX_LINES ? pd->n : MAX_LINES;
 
   processes = pd->tab;
 
   if(!n) return;  /* no processes */
   if(forest_type) prep_forest_sort();
   qsort(processes, n, sizeof(proc_t*), compare_two_procs);
+  //n = pd->n < MAX_LINES ? pd->n : MAX_LINES;
   if(forest_type) show_forest(n,out_fp);
   else show_proc_array(ptp,n,out_fp);
   closeproc(ptp);
-  freeproc(*processes);
+  //freeproc(*processes);
 }
 
 static void arg_check_conflicts(void)
