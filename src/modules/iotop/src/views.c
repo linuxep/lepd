@@ -218,7 +218,7 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
 
         printf("%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
                s->tid,
-               str_ioprio(s->io_prio),
+               str_ioprio_ext(s->io_prio,s->tid),
                pwd ? pwd->pw_name : "UNKNOWN",
                read_val,
                read_str,
