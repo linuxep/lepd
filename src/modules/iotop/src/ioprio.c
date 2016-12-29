@@ -35,8 +35,8 @@ enum {
 #elif defined(__ia64__)
 #define __NR_ioprio_set         1274
 #define __NR_ioprio_get         1275
-#else
-#error "Unsupported arch"
+//#else
+//#error "Unsupported arch"
 #endif
 
 # define SYS_ioprio_set __NR_ioprio_set
