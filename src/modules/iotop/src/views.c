@@ -191,6 +191,8 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps)
     for (s = diff; s; s = s->__next)
     {
         struct passwd *pwd = getpwuid(s->euid);
+	if(!pwd)
+		pwd = bb_internal_getpwuid(s->euid);
 
         double read_val = s->read_val;
         double write_val = s->write_val;
