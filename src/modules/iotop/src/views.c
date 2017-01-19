@@ -154,12 +154,16 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int fd)
 
     double total_read, total_write;
     char *str_read, *str_write;
+	
+    if(cs == NULL) return EXIT_SUCCESS;
+
+    FILE *fp = fdopen(fd, "w");
+    if(fp == NULL) return EXIT_SUCCESS;
 
     calc_total(diff, &total_read, &total_write);
 
     humanize_val(&total_read, &str_read);
     humanize_val(&total_write, &str_write);
-    FILE *fp = fdopen(fd, "w");
 
     fprintf(fp,HEADER_FORMAT,
            total_read,

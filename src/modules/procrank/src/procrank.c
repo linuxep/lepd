@@ -135,6 +135,9 @@ int procrank_main(int argc, char *argv[], int out_fd) {
     uint64_t required_flags = 0;
     uint64_t flags_mask = 0;
 
+    FILE *fp = fdopen(out_fd, "w");
+    if(fp == NULL) return EXIT_SUCCESS;
+
     #define WS_OFF   0
     #define WS_ONLY  1
     #define WS_RESET 2
@@ -162,33 +165,38 @@ int procrank_main(int argc, char *argv[], int out_fd) {
         if (!strcmp(argv[arg], "-h")) { usage(argv[0]); exit(0); }
         fprintf(stderr, "Invalid argument \"%s\".\n", argv[arg]);
         usage(argv[0]);
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     error = pm_kernel_create(&ker);
     if (error) {
         fprintf(stderr, "Error creating kernel interface -- "
                         "does this kernel have pagemap?\n");
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
+	return EXIT_FAILURE;
     }
 
     error = pm_kernel_pids(ker, &pids, &num_procs);
     if (error) {
         fprintf(stderr, "Error listing processes.\n");
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     procs = calloc(num_procs, sizeof(struct proc_info*));
     if (procs == NULL) {
         fprintf(stderr, "calloc: %s", strerror(errno));
-        exit(EXIT_FAILURE);
+        //exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     for (i = 0; i < num_procs; i++) {
         procs[i] = malloc(sizeof(struct proc_info));
         if (procs[i] == NULL) {
             fprintf(stderr, "malloc: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
+            //exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
         procs[i]->pid = pids[i];
         pm_memusage_zero(&procs[i]->usage);
@@ -224,7 +232,8 @@ int procrank_main(int argc, char *argv[], int out_fd) {
 
     free(pids);
 
-    if (ws == WS_RESET) exit(0);
+    if (ws == WS_RESET) //exit(0);
+        return EXIT_FAILURE;
 
     j = 0;
     for (i = 0; i < num_procs; i++) {
@@ -238,7 +247,6 @@ int procrank_main(int argc, char *argv[], int out_fd) {
 
     qsort(procs, num_procs, sizeof(procs[0]), compfn);
 
-    FILE *fp = fdopen(out_fd, "w");
     fprintf(fp, "%5s  ", "PID");
     if (ws) {
         fprintf(fp, "%s  %7s  %7s  ", "WRss", "WPss", "WUss");

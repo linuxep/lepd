@@ -266,10 +266,11 @@ cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 		DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
 		memset(cmd_buff, 0, CMD_BUFF);
- 		fflush(stdout);
+ 		//fflush(stdout);
 		int fd[2];
    		if(pipe(fd))   {
       		    DEBUG_PRINT("pipe error!\n");
+	            pthread_mutex_unlock(info->lock);
       		    return NULL;
    		}
 
@@ -401,7 +402,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
-	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
+	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "top -n 1 -b");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");

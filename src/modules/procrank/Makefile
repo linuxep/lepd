@@ -15,7 +15,7 @@ TARGET = libprocrank.a
 #LD=$(CROSS_COMPILE)ld
 
 
-CFLAGS = -I$(DIR_INC) -Wall -static -D_LARGEFILE64_SOURCE
+CFLAGS = -I$(DIR_INC) -Wall -static -g -D_LARGEFILE64_SOURCE
 
 
  

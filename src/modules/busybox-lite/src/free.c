@@ -75,6 +75,9 @@ int free_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 	struct sysinfo info;
 	unsigned long long cached; 
 
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
+
 	INIT_G();
     
 #if ENABLE_DESKTOP
@@ -106,8 +109,6 @@ int free_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 	cached = get_cache_from_meminfo();
 	/* Kernels prior to 2.4.x will return info.mem_unit==0, so cope... */
 	G.mem_unit = (info.mem_unit ? info.mem_unit : 1);
-
-    FILE *fp = fdopen(fd, "w");
 
 	fprintf(fp,"           %13s%13s%13s%13s%13s%13s\n",
 		"total",

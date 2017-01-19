@@ -80,6 +80,9 @@ int df_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 	struct mntent *mount_entry;
 	struct statfs s;
 
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
+
 	enum {
 		OPT_KILO  = (1 << 0),
 		OPT_POSIX = (1 << 1),
@@ -135,7 +138,6 @@ int df_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 #endif
 	}
 	
-	FILE *fp = fdopen(fd, "w");
 	fprintf(fp,"Filesystem           %-15sUsed Available %s Mounted on\n",
 			disp_units_hdr, (opt & OPT_POSIX) ? "Capacity" : "Use%");
 

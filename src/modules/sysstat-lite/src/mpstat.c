@@ -1534,6 +1534,8 @@ int mpstat_main(int argc, char **argv, int fd)
 	
 	interval = -1, count = 0;
 
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
 #ifdef USE_NLS
 	/* Init National Language Support */
 	init_nls();
@@ -1729,7 +1731,6 @@ int mpstat_main(int argc, char **argv, int fd)
 	/* Get time */
 	get_localtime(&(mp_tstamp[0]), 0);
 
-	FILE* fp = fdopen(fd, "w");
 	/* Get system name, release number and hostname */
 	uname(&header);
 	print_gal_header(&(mp_tstamp[0]), header.sysname, header.release,

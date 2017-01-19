@@ -615,6 +615,9 @@ int ps_main(int argc, char *argv[], int out_fd){
 
   //reset_sortformat();	
   //atexit(close_stdout);
+  FILE *out_fp = fdopen(out_fd, "w");
+  if(out_fp == NULL) return EXIT_SUCCESS;
+
   myname = strrchr(*argv, '/');
   if (myname) ++myname; else myname = *argv;
 
@@ -663,7 +666,6 @@ int ps_main(int argc, char *argv[], int out_fd){
   trace("======= ps output follows =======\n");
 
   init_output(); /* must be between parser and output */
-  FILE *out_fp = fdopen(out_fd, "w");
 
   lists_and_needs();
 

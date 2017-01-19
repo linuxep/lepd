@@ -1567,6 +1567,8 @@ int iostat_main(int argc, char **argv, int fd)
 	struct tm rectime;
 	char *t, *persist_devname, *devname;
 
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
 #ifdef USE_NLS
 	/* Init National Language Support */
 	init_nls();
@@ -1867,8 +1869,6 @@ int iostat_main(int argc, char **argv, int fd)
 	}
 
 	get_localtime(&rectime, 0);
-
-	FILE* fp = fdopen(fd, "w");
 
 	/* Get system name, release number and hostname */
 	uname(&header);

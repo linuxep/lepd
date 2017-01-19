@@ -15,7 +15,7 @@ TARGET = libsysstat.a
 #LD=$(CROSS_COMPILE)ld
 
 
-CFLAGS = -g -I$(DIR_INC) -Wall -static
+CFLAGS = -g -I$(DIR_INC) -Wall -static -g
 
 
  

@@ -32,6 +32,9 @@ int dmesg_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 		OPT_n = 1 << 2
 	};
 
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
+
 	opt_complementary = "s+:n+"; /* numeric */
 	opts = getopt32(argv, "cs:n:", &len, &level);
 	if (opts & OPT_n) {
@@ -48,7 +51,6 @@ int dmesg_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 	if (len > 16*1024*1024)
 		len = 16*1024*1024;
 #endif
-	FILE *fp = fdopen(fd, "w");
 	buf = malloc(len);
 	len = klogctl(3 + (opts & OPT_c), buf, len); /* read ring buffer */
 	if (len < 0)
