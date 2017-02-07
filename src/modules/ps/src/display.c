@@ -560,7 +560,7 @@ static void fancy_spew(void){
   if(forest_type) show_forest(n);
   else show_proc_array(ptp,n);
   closeproc(ptp);
-  freeproc(*processes);
+  //freeproc(*processes);
 }
 
 static void arg_check_conflicts(void)

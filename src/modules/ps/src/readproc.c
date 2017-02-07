@@ -1481,15 +1481,15 @@ proc_t** readproctab(int flags, ...) {
 // Try again, this time with threads and selection.
 proc_data_t *readproctab2(int(*want_proc)(proc_t *buf), int(*want_task)(proc_t *buf), PROCTAB *restrict const PT) {
     static proc_data_t pd;
-    proc_t** ptab = NULL;
+    static proc_t** ptab = NULL;
     unsigned n_proc_alloc = 0;
     unsigned n_proc = 0;
 
-    proc_t** ttab = NULL;
+    static proc_t** ttab = NULL;
     unsigned n_task_alloc = 0;
     unsigned n_task = 0;
 
-    proc_t*  data = NULL;
+    static proc_t*  data = NULL;
     unsigned n_alloc = 0;
     unsigned long n_used = 0;
 
@@ -1554,7 +1554,7 @@ proc_data_t *readproctab2(int(*want_proc)(proc_t *buf), int(*want_task)(proc_t *
 // Try try yet again, this time treating processes and threads the same...
 proc_data_t *readproctab3 (int(*want_task)(proc_t *buf), PROCTAB *restrict const PT) {
     static proc_data_t pd;
-    proc_t **tab = NULL;
+    static proc_t **tab = NULL;
     unsigned n_alloc = 0;
     unsigned n_used = 0;
     proc_t *p = NULL;
