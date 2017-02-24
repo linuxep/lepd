@@ -15,7 +15,7 @@ PROJECT_PS_DIR=$(PROJECT_MODULE_DIR)/ps
 PROJECT_IOTOP_DIR=$(PROJECT_MODULE_DIR)/iotop
 MKDIR := mkdir -p
 
-
+ARCH ?= x86
 ifeq ($(ARCH), x86)
 CC=gcc
 AR=ar
