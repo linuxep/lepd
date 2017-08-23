@@ -269,9 +269,18 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 int main(int argc, char **argv)
 {
-	debug = (argc == 2) && (!strcmp(argv[1], "--debug"));
+	int fd;
 
+	debug = (argc == 2) && (!strcmp(argv[1], "--debug"));
+	/*
+	 * we need to dup2 stdout to pipes for sub-commands
+	 * so, don't close them; but we want to mute errors
+	 * just like a typical daemon
+	 */
 	daemon(0, 1);
+	fd = open ("/dev/null", O_RDWR, 0);
+	if (fd != -1)
+		dup2 (fd, STDERR_FILENO);
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
