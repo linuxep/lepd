@@ -58,6 +58,14 @@ root@bob-VirtualBox:~/lepd-src# make ARCH=arm
 
 运行lepd需要root权限，因为系统有些proc文件无root权限无法读取。
 
+lepd运行的板子、服务器的内核需要使能TASKSTATS，这样IOTOP的功能才可以起来：
+General setup --->
+CPU/Task time and stats accounting --->
+[*] Export task/process statistics through netlink
+[*] Enable per-task delay accounting
+[*] Enable extended accounting over taskstats
+[*] Enable per-task storage I/O accounting
+
 ## 实现
 
 用了cJSON和jsonrpc-c
