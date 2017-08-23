@@ -71,6 +71,7 @@ CPU/Task time and stats accounting --->
 
 [*] Enable per-task storage I/O accounting
 
+目前,LEPD还没有集成perf的功能，因此，要求目标平台上，还是有安装perf，内核也使能perf相关的支持。
 
 ## 实现
 
