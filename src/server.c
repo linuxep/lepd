@@ -20,12 +20,11 @@
 #include <signal.h>
 #include "jsonrpc-c.h"
 
-#define DEBUG
-#ifdef DEBUG
-#define DEBUG_PRINT(fmt, args...)    printf(fmt, ## args)
-#else
-#define DEBUG_PRINT(fmt, args...)
-#endif
+static int debug; /* enable this to printf */
+#define DEBUG_PRINT(fmt, args...) \
+	do { if(debug) \
+	printf(fmt, ## args); \
+	} while(0)
 
 #define PORT 12307  // the port users will be connecting to
 #define PROC_BUFF 8192
@@ -53,7 +52,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (!ctx->data)
 		return NULL;
 
-	snprintf(proc_path, 50, "/proc/%s", ctx->data);
+	snprintf(proc_path, 50, "/proc/%s", (char *)ctx->data);
 	DEBUG_PRINT("read_proc: path: %s\n", proc_path);
 
 	fd = open(proc_path, O_RDONLY);
@@ -153,7 +152,7 @@ builtin_func lookup_func(char* name){
 
 cJSON * run_builtin_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
-	DEBUG_PRINT("run_builtin_cmd:%s\n",ctx->data);
+	DEBUG_PRINT("run_builtin_cmd:%s\n",(char *)ctx->data);
 
         if (!ctx->data)
                 return NULL;
@@ -225,7 +224,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1 , fp);
-		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, (char *)ctx->data);
 		pclose(fp);
 
 		strcat(cmd_buff, endstring);
@@ -248,7 +247,7 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
-		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, (char *)ctx->data);
 		pclose(fp);
 
 		strcat(cmd_buff, endstring);
@@ -270,10 +269,9 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 int main(int argc, char **argv)
 {
-	if ( (argc == 2) && (strcmp(argv[1], "--debug") == 0) ){
-			/* Enable debugging. */
-	} else
-		daemon(0, 0);
+	debug = (argc == 2) && (!strcmp(argv[1], "--debug"));
+
+	daemon(0, 1);
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
