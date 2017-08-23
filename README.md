@@ -60,11 +60,17 @@ root@bob-VirtualBox:~/lepd-src# make ARCH=arm
 
 lepd运行的板子、服务器的内核需要使能TASKSTATS，这样IOTOP的功能才可以起来：
 General setup --->
+
 CPU/Task time and stats accounting --->
+
 [*] Export task/process statistics through netlink
+
 [*] Enable per-task delay accounting
+
 [*] Enable extended accounting over taskstats
+
 [*] Enable per-task storage I/O accounting
+
 
 ## 实现
 
