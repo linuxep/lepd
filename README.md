@@ -48,7 +48,15 @@ root@bob-VirtualBox:~#  git clone https://github.com/linuxep/lepd
 
 For X86（电脑需要安装libev-dev库）:
 
-root@bob-VirtualBox:~/lepd-src# make ARCH=x86 
+电脑需要提前安装：
+
+apt-get install libev-dev 
+
+apt-get install linux-tools-common linux-tools-generic linux-tools-`uname -r`
+
+apt-get install libncurses5-dev
+
+root@bob-VirtualBox:~/lepd-src# make
 
 For ARM（电脑需要安装arm-linux-gnueabi-gcc）:
 
