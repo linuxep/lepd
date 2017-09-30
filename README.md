@@ -34,6 +34,7 @@ root@bob-VirtualBox:~#
 root@bob-VirtualBox:~# echo "{\"method\":\"GetProcMeminfo\"}" | nc <lepd IP地址> 12307
 
 {
+
 	"result":	"MemTotal:        1017788 kB\nMemFree:          426560 kB\nBuffers:           77080 kB\nCached:           231968 kB\nSwapCached:            0 kB\nActive:           342212 kB\nInactive:         172488 kB\nActive(anon):     207000 kB\nInactive(anon):    11256 kB\nActive(file):     135212 kB\nInactive(file):   161232 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:             0 kB\nSwapFree:              0 kB\nDirty:                92 kB\nWriteback:             0 kB\nAnonPages:        205652 kB\nMapped:            40480 kB\nShmem:             12608 kB\nSlab:              50868 kB\nSReclaimable:      39328 kB\nSUnreclaim:        11540 kB\nKernelStack:        1336 kB\nPageTables:         6768 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:      508892 kB\nCommitted_AS:     947444 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:        8796 kB\nVmallocChunk:   34359721724 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:     67584 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nDirectMap4k:       63360 kB\nDirectMap2M:      985088 kB\nDirectMap1G:           0 kB\nlepdendstring"
 }
 
@@ -52,9 +53,9 @@ For X86（电脑需要安装libev-dev库）:
 
 {
 
-apt-get install libev-dev 
-apt-get install linux-tools-common linux-tools-generic linux-tools-`uname -r`
-apt-get install libncurses5-dev
+	apt-get install libev-dev 
+	apt-get install linux-tools-common linux-tools-generic linux-tools-`uname -r`
+	apt-get install libncurses5-dev
 }
 
 root@bob-VirtualBox:~/lepd-src# make
