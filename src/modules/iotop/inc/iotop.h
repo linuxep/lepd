@@ -68,10 +68,10 @@ typedef int (*filter_callback)(struct xxxid_stats *);
 struct xxxid_stats* fetch_data(int processes, filter_callback);
 void free_stats_chain(struct xxxid_stats *chain);
 
-typedef void (*view_callback)(struct xxxid_stats *current, struct xxxid_stats *prev);
+typedef void (*view_callback)(struct xxxid_stats *current, struct xxxid_stats *prev, int iter);
 
-void view_batch(struct xxxid_stats *, struct xxxid_stats *);
-void view_curses(struct xxxid_stats *, struct xxxid_stats *);
+void view_batch(struct xxxid_stats *, struct xxxid_stats *, int iter);
+void view_curses(struct xxxid_stats *, struct xxxid_stats *, int iter);
 void view_curses_finish();
 
 typedef int (*how_to_sleep)(unsigned int seconds);

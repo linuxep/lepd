@@ -19,8 +19,8 @@ params_t params;
 void
 init_params(void)
 {
-    params.iter = -1;
-    params.delay = 0;
+    params.iter = 2;
+    params.delay = 1;
     params.pid = -1;
     params.user_id = -1;
 }
@@ -209,7 +209,7 @@ iotop_main(int argc, char *argv[])
     do
     {
         cs = fetch_data(config.f.processes, filter1);
-        view(cs, ps);
+        view(cs, ps, params.iter);
 
         if (ps)
             free_stats_chain(ps);
@@ -218,8 +218,7 @@ iotop_main(int argc, char *argv[])
         if ((params.iter > -1) && ((--params.iter) == 0))
             break;
     }
-    //while (!do_sleep(params.delay));
-    while(0);
+    while (!do_sleep(params.delay));
 
     free_stats_chain(cs);
     sig_handler(SIGINT);
