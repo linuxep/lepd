@@ -1,0 +1,15 @@
+sudo: required
+language: c
+complier: gcc
+script: make
+before_script: sudo apt-get install libev-dev
+notifications:
+  email:
+    recipients:
+      - 21cnbao@gmail.com
+      - lliubbo@gmail.com
+      - shinyxxn@hotmail.com
+      - chensong@linuxep.com
+    on_success: change
+    on_failure: always
+
