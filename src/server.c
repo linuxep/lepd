@@ -76,6 +76,7 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 #include "procrank.h"
 #include "iotop.h"
 #include "ps.h"
+#include "customization.h"
 #include <unistd.h>  
 
 #define LOOKUP_TABLE_COUNT 32
@@ -131,6 +132,10 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 	{
 		.name = "dmesg",
 		.func = COMMAND(dmesg),
+	},
+	{
+		.name = "irq_info",
+		.func = COMMAND(irq_info),
 	},
 	{
 		.name = NULL,
@@ -318,6 +323,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCpuInfo", "cpuinfo");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIrqInfo", "irq_info");
 
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
