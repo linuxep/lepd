@@ -13,9 +13,12 @@
 #include <stdlib.h>
 #include <getopt.h>
 
+
+#define BUFFSIZE (64*1024)
+static unsigned long long sleep_time = 1;
+
 int irq_info_main(int argc, char *argv[]){
-	int intr = 10;
-	int softirq = 100;
+
 /*******************************
   1 read /proc/stat
   2 get irqs
@@ -30,7 +33,43 @@ int irq_info_main(int argc, char *argv[]){
   5 repeat
   6 irq2 - irq1, softirq2 - softirq2
   7 return
-*******************************8**/
-	printf("intr/sec:%d, softirq/sec:%d\n", intr, softirq);
+**********************************/
+
+        unsigned long long irq[2]= {0}, softirq[2]= {0};
+
+        static int fd;
+        const char *b = NULL;
+        unsigned long long llbuf = 0;
+        char buff[BUFFSIZE-1] = {0};
+
+	fd = open("/proc/stat", O_RDONLY, 0);
+        read(fd, buff, BUFFSIZE-1);
+        b = strstr(buff, "intr");
+        if (b)
+                sscanf(b, "intr %Lu", &llbuf);
+        irq[0] = llbuf;
+
+        b = strstr(buff, "softirq");
+        if (b)
+                sscanf(b, "softirq %Lu", &llbuf);
+        softirq[0] = llbuf;
+        close(fd);
+
+        sleep(sleep_time);
+
+        fd = open("/proc/stat", O_RDONLY, 0);
+	read(fd, buff, BUFFSIZE-1);
+        b = strstr(buff, "intr");
+        if (b)
+        	sscanf(b, "intr %Lu", &llbuf);
+        irq[1] = llbuf;
+
+        b = strstr(buff, "softirq");
+        if (b)
+        	sscanf(b, "softirq %Lu", &llbuf);
+        softirq[1] = llbuf;
+        close(fd);
+
+        printf("irq:%d/s softirq:%d/s \n", irq[1]-irq[0], softirq[1]-softirq[0]);
 	return 1;
 }
