@@ -323,6 +323,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCpuInfo", "cpuinfo");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat-I", "mpstat -I ALL 1 1");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIrqInfo", "irq_info");
 
 	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
