@@ -30,7 +30,7 @@ static int debug; /* enable this to printf */
 #define PROC_BUFF 8192
 unsigned char proc_buff[PROC_BUFF];
 
-#define CMD_BUFF 8192
+#define CMD_BUFF 16384
 unsigned char cmd_buff[CMD_BUFF];
 
 struct jrpc_server my_server;
@@ -239,7 +239,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 //#endif
 
-cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+cJSON * run_perf_report_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
@@ -249,6 +249,28 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	DEBUG_PRINT("run_perf_cmd\n");
 	system(ctx->data);
 	fp = popen("perf report", "r");
+	if (fp) {
+		memset(cmd_buff, 0, CMD_BUFF);
+		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, (char *)ctx->data);
+		pclose(fp);
+
+		strcat(cmd_buff, endstring);
+		return cJSON_CreateString(cmd_buff);
+	}
+	return NULL;
+}
+
+cJSON * run_perf_script_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+{
+	FILE *fp;
+	int size;
+
+	if (!ctx->data)
+		return NULL;
+	DEBUG_PRINT("run_perf_cmd\n");
+	system(ctx->data);
+	fp = popen("perf script", "r");
 	if (fp) {
 		memset(cmd_buff, 0, CMD_BUFF);
 		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
@@ -326,8 +348,9 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat-I", "mpstat -I ALL 1 1");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIrqInfo", "irq_info");
 
-	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
-	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_script_cmd, "GetCmdPerfFlame", "perf record -F 99 -a -g -- sleep 1");
 	jrpc_server_run(&my_server);
 	jrpc_server_destroy(&my_server);
 	return 0;
