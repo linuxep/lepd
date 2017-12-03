@@ -138,6 +138,11 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(irq_info),
 	},
 	{
+		.name = "cgtop",
+		.func = COMMAND(cgtop),
+	},
+
+	{
 		.name = NULL,
 		.func = NULL,
 	},
@@ -347,6 +352,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat-I", "mpstat -I ALL 1 1");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIrqInfo", "irq_info");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdCgtop", "cgtop");
 
 	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
 	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
