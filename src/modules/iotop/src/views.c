@@ -144,101 +144,6 @@ void humanize_val(double *value, char **str)
     *str = config.f.accumulated ? prefix_acc[p] : prefix[p];
 }
 
-#define MAX_LINES 50
-void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int fd)
-{
-    int diff_len = 0;
-
-    struct xxxid_stats *diff = create_diff(cs, ps, &diff_len);
-    struct xxxid_stats *s;
-
-    double total_read, total_write;
-    char *str_read, *str_write;
-	
-    if(cs == NULL) return EXIT_SUCCESS;
-
-    FILE *fp = fdopen(fd, "w");
-    if(fp == NULL) return EXIT_SUCCESS;
-
-    calc_total(diff, &total_read, &total_write);
-
-    humanize_val(&total_read, &str_read);
-    humanize_val(&total_write, &str_write);
-
-    fprintf(fp,HEADER_FORMAT,
-           total_read,
-           str_read,
-           total_write,
-           str_write
-          );
-
-    if (config.f.timestamp)
-    {
-        time_t t = time(NULL);
-        fprintf(fp ," | %s", ctime(&t));
-    }
-    else
-        fprintf(fp,"\n");
-
-    if (!config.f.quite)
-        fprintf(fp,"%5s %4s %8s %11s %11s %6s %6s %s\n",
-               config.f.processes ? "PID" : "TID",
-               "PRIO",
-               "USER",
-               "DISK READ",
-               "DISK WRITE",
-               "SWAPIN",
-               "IO",
-               "COMMAND"
-              );
-
-    int nLines = 0;
-    for (s = diff; s; s = s->__next)
-    {
-        struct passwd *pwd = getpwuid(s->euid);
-
-        double read_val = s->read_val;
-        double write_val = s->write_val;
-
-	if(++nLines >= MAX_LINES){
-	    break;
-	}
-        if (config.f.only && (!read_val || !write_val))
-            continue;
-
-        char *read_str, *write_str;
-
-        if (config.f.kilobytes)
-        {
-            read_val /= 1000;
-            write_val /= 1000;
-            read_str = config.f.accumulated ? "K" : "K/s";
-            write_str = config.f.accumulated ? "K" : "K/s";
-        }
-        else
-        {
-            humanize_val(&read_val, &read_str);
-            humanize_val(&write_val, &write_str);
-        }
-
-        fprintf(fp,"%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
-               s->tid,
-               str_ioprio(s->io_prio),
-               pwd ? pwd->pw_name : "UNKNOWN",
-               read_val,
-               read_str,
-               write_val,
-               write_str,
-               s->swapin_val,
-               s->blkio_val,
-               s->cmdline
-              );
-    }
-
-    free(diff);
-    fclose(fp);
-}
-
 enum
 {
     SORT_BY_PID,
@@ -332,7 +237,7 @@ void sort_diff(struct xxxid_stats *d)
     d[len - 1].__next = NULL;
 }
 
-void view_curses(struct xxxid_stats *cs, struct xxxid_stats *ps)
+void view_curses(struct xxxid_stats *cs, struct xxxid_stats *ps,int iter)
 {
 #if 0
     if (!stdscr)
@@ -472,4 +377,105 @@ int curses_sleep(unsigned int seconds)
     }
 #endif
     return 0;
+}
+
+#define MAX_LINES 50
+void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter, int fd)
+{
+    int diff_len = 0;
+
+    struct xxxid_stats *diff = create_diff(cs, ps, &diff_len);
+    struct xxxid_stats *s;
+
+    double total_read, total_write;
+    char *str_read, *str_write;
+	
+    if(cs == NULL) return EXIT_SUCCESS;
+
+    FILE *fp = fdopen(fd, "w");
+    if(fp == NULL) return EXIT_SUCCESS;
+
+    calc_total(diff, &total_read, &total_write);
+
+    /*only print result at the last iteration*/
+    if(iter > 1) return;
+
+    humanize_val(&total_read, &str_read);
+    humanize_val(&total_write, &str_write);
+
+    fprintf(fp,HEADER_FORMAT,
+           total_read,
+           str_read,
+           total_write,
+           str_write
+          );
+
+    if (config.f.timestamp)
+    {
+        time_t t = time(NULL);
+        fprintf(fp ," | %s", ctime(&t));
+    }
+    else
+        fprintf(fp,"\n");
+
+    if (!config.f.quite)
+        fprintf(fp,"%5s %4s %8s %11s %11s %6s %6s %s\n",
+               config.f.processes ? "PID" : "TID",
+               "PRIO",
+               "USER",
+               "DISK READ",
+               "DISK WRITE",
+               "SWAPIN",
+               "IO",
+               "COMMAND"
+              );
+
+    sort_diff(diff);
+    int nLines = 0;
+    for (s = diff; s; s = s->__next)
+    {
+        struct passwd *pwd = getpwuid(s->euid);
+	if(!pwd)
+		pwd = bb_internal_getpwuid(s->euid);
+
+        double read_val = s->read_val;
+        double write_val = s->write_val;
+
+	if(++nLines >= MAX_LINES){
+	    break;
+	}
+        if (config.f.only && (!read_val || !write_val))
+            continue;
+
+        char *read_str, *write_str;
+
+        if (config.f.kilobytes)
+        {
+            read_val /= 1000;
+            write_val /= 1000;
+            read_str = config.f.accumulated ? "K" : "K/s";
+            write_str = config.f.accumulated ? "K" : "K/s";
+        }
+        else
+        {
+            humanize_val(&read_val, &read_str);
+            humanize_val(&write_val, &write_str);
+        }
+
+        fprintf(fp,"%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
+               s->tid,
+               str_ioprio_ext(s->io_prio,s->tid),
+               pwd ? pwd->pw_name : "UNKNOWN",
+               read_val,
+               read_str,
+               write_val,
+               write_str,
+               s->swapin_val,
+               s->blkio_val,
+               s->cmdline
+              );
+    }
+
+    free(diff);
+    fclose(fp);
 }

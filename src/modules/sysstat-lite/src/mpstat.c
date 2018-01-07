@@ -1533,6 +1533,7 @@ int mpstat_main(int argc, char **argv, int fd)
 	char *t;
 	
 	interval = -1, count = 0;
+        actflags = 0; flags = 0;
 
 	FILE *fp = fdopen(fd, "w");
 	if(fp == NULL) return EXIT_SUCCESS;

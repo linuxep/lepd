@@ -20,18 +20,17 @@
 #include <signal.h>
 #include "jsonrpc-c.h"
 
-#define DEBUG
-#ifdef DEBUG
-#define DEBUG_PRINT(fmt, args...)    printf(fmt, ## args)
-#else
-#define DEBUG_PRINT(fmt, args...)
-#endif
+static int debug; /* enable this to printf */
+#define DEBUG_PRINT(fmt, args...) \
+	do { if(debug) \
+	printf(fmt, ## args); \
+	} while(0)
 
 #define PORT 12307  // the port users will be connecting to
 #define PROC_BUFF 8192
 //unsigned char proc_buff[PROC_BUFF];
 
-#define CMD_BUFF 8192
+#define CMD_BUFF 16384
 //unsigned char cmd_buff[CMD_BUFF];
 
 struct jrpc_server my_server;
@@ -48,6 +47,7 @@ cJSON * say_hello(jrpc_context * ctx, cJSON * params, cJSON *id)
 #include "procrank.h"
 #include "iotop.h"
 #include "ps.h"
+#include "customization.h"
 #include <unistd.h>  
 
 #define LOOKUP_TABLE_COUNT 32
@@ -107,6 +107,12 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.lock = &LOCK(ps),
 	},
 	{
+		.name = "cpuinfo",
+                .type = CMD_TYPE_BUILTIN,
+		.func = COMMAND(cpuinfo),
+                .lock = &LOCK(sysstat),
+	},
+	{
 		.name = "iostat",
 		.type = CMD_TYPE_BUILTIN,
 		.func = COMMAND(iostat),
@@ -154,6 +160,13 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(dmesg),
 		.lock = &LOCK(busybox),
 	},
+	{
+		.name = "cgtop",
+                .type = CMD_TYPE_BUILTIN,
+		.func = COMMAND(cgtop),
+                .lock = &LOCK(sysstat),
+	},
+
 	{
 		.name = NULL,
 		.func = NULL,
@@ -219,7 +232,8 @@ cJSON * read_proc(jrpc_context * ctx, cJSON * params, cJSON *id)
 	DEBUG_PRINT("read_proc: path: %s\n", proc_path);
 	fd = open(proc_path, O_RDONLY);
 	if (fd < 0) {
-		printf("Open file:%s error.\n", proc_path);
+		DEBUG_PRINT("Open file:%s error.\n", proc_path);
+                pthread_mutex_unlock(info->lock);
 		return NULL;
 	}
 
@@ -324,7 +338,7 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 }
 //#endif
 
-cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+cJSON * run_perf_report_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
@@ -354,6 +368,36 @@ cJSON * run_perf_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	pthread_mutex_unlock(info->lock);
 	return NULL;
 }
+cJSON * run_perf_script_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
+{
+	FILE *fp;
+	int size;
+	unsigned char cmd_buff[CMD_BUFF];
+
+	if (!ctx->data)
+		return NULL;
+
+
+	builtin_func_info* info = lookup_func("perf");
+	pthread_mutex_lock(info->lock);
+
+	DEBUG_PRINT("run_perf_cmd\n");
+	system(ctx->data);
+	fp = popen("perf script", "r");
+	if (fp) {
+		memset(cmd_buff, 0, CMD_BUFF);
+		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
+		DEBUG_PRINT("run_cmd:size %d:%s\n", size, ctx->data);
+		pclose(fp);
+
+		strcat(cmd_buff, endstring);	
+		pthread_mutex_unlock(info->lock);
+		return cJSON_CreateString(cmd_buff);
+	}
+
+	pthread_mutex_unlock(info->lock);
+	return NULL;
+}
 cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	int i;
@@ -369,12 +413,18 @@ cJSON * list_all(jrpc_context * ctx, cJSON * params, cJSON *id)
 
 int main(int argc, char **argv)
 {
-	if ( (argc == 2) && (strcmp(argv[1], "--debug") == 0) ){
-			/* Enable debugging. */
-	} else
-		daemon(0, 0);
+	int fd;
 
-	init_built_func_table();
+	debug = (argc == 2) && (!strcmp(argv[1], "--debug"));
+	/*
+	 * we need to dup2 stdout to pipes for sub-commands
+	 * so, don't close them; but we want to mute errors
+	 * just like a typical daemon
+	 */
+	daemon(0, 1);
+	fd = open ("/dev/null", O_RDWR, 0);
+	if (fd != -1)
+		dup2 (fd, STDERR_FILENO);
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
@@ -398,21 +448,27 @@ int main(int argc, char **argv)
 	 *
 	 * ****************************************/
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIotop", "iotop");
+	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdFree", "free");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIostat", "iostat -d -x -k");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdVmstat", "vmstat");
-	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "top -n 1 -b");
+	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDmesg", "dmesg");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCpuInfo", "cpuinfo");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat", "mpstat -P ALL 1 1");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdMpstat-I", "mpstat -I ALL 1 1");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIrqInfo", "irq_info");
+	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdCgtop", "cgtop");
 
-	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
-	jrpc_register_procedure(&my_server, run_perf_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfFaults", "perf record -a -e faults sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_report_cmd, "GetCmdPerfCpuclock", "perf record -a -e cpu-clock sleep 1");
+	jrpc_register_procedure(&my_server, run_perf_script_cmd, "GetCmdPerfFlame", "perf record -F 99 -a -g -- sleep 1");
 	jrpc_server_run(&my_server);
 	jrpc_server_destroy(&my_server);
 	return 0;
