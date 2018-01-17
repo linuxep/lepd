@@ -20,7 +20,7 @@ LepvClient通过JsonRpc连接
 
 发送"ListAllMethod?"这个rpc方法，可以获得LepD所支持的所有方法
 
-root@bob-VirtualBox:~# echo "{\"method\":\"ListAllMethod\"}" | nc <lepd IP地址> 12307
+root@bob-VirtualBox:~# echo '{\"method\":\"ListAllMethod\"}' | nc <lepd IP地址> 12307
 
 {
 
@@ -31,7 +31,7 @@ root@bob-VirtualBox:~#
 
 具体某个方法，比如想获得内存的信息
 
-root@bob-VirtualBox:~# echo "{\"method\":\"GetProcMeminfo\"}" | nc <lepd IP地址> 12307
+root@bob-VirtualBox:~# echo '{\"method\":\"GetProcMeminfo\"}' | nc <lepd IP地址> 12307
 
 {
 
