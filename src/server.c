@@ -443,6 +443,7 @@ int main(int argc, char **argv)
 	jrpc_register_procedure(&my_server, read_proc, "GetProcVersion", "version");
 	jrpc_register_procedure(&my_server, read_proc, "GetProcStat", "stat");
 	jrpc_register_procedure(&my_server, read_proc, "GetProcModules", "modules");
+	jrpc_register_procedure(&my_server, read_proc, "GetProcVmallocinfo", "vmallocinfo");
 
 	/*********************************************
 	 *
