@@ -64,6 +64,29 @@ For ARM（电脑需要安装arm-linux-gnueabi-gcc）:
 
 root@bob-VirtualBox:~/lepd-src# make ARCH=arm 
 
+编译的过程中你可能会遇到如下问题：
+
+lepd uses VFP register arguments, lepd/libs/arm-libev/libev.a(ev.o) does not
+
+这可能是因为你的工具链加了 -mfloat-abi=hard
+
+如果基线不允许修改这个参数，那么你可以自行编译libev（我是这么做的）
+
+libev可以通过如下方式下载：
+
+git clone https://github.com/enki/libev.git
+
+关于编译libev我这里手顺是：
+
+./configure --prefix=/home/xxx/elp/ --host=arm （这之前我source了yocto的sdk脚本environment-setup-cortexa9hf-neon-poky-linux-gnueabi）
+
+make
+
+然后cp libev.a 到 lepd/libs/arm-libev/libev.a
+
+继续完成lepd编译
+
+
 ## 如何运行
 
 运行lepd需要root权限，因为系统有些proc文件无root权限无法读取。
