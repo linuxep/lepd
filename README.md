@@ -83,6 +83,8 @@ CPU/Task time and stats accounting --->
 
 目前,LEPD还没有集成perf的功能，因此，要求目标平台上，还是有安装perf，内核也使能perf相关的支持。
 
+## 如果要在浏览器中支持火焰图，也需要lepd运行的目标平台上支持了perf!
+
 ## 实现
 
 用了cJSON和jsonrpc-c
