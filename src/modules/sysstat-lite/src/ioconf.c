@@ -38,6 +38,7 @@
 #else
 #define _(string) (string)
 #endif
+#include <sys/sysmacros.h>
 
 static unsigned int ioc_parsed = 0;
 static struct ioc_entry *ioconf[MAX_BLKDEV + 1];
