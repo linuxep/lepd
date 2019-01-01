@@ -43,6 +43,7 @@ struct jrpc_procedure {
 	char * name;
 	jrpc_function function;
 	void *data;
+	int allow:1;
 };
 
 struct jrpc_server {

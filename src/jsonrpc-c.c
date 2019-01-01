@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
 
 #include "jsonrpc-c.h"
 
@@ -72,6 +73,36 @@ static int send_result(struct jrpc_connection * conn, cJSON * result,
 	return return_value;
 }
 
+static int selftest_procedure(struct jrpc_server *server) {
+	pid_t pid;
+
+	int i = server->procedure_count;
+	while (i--) {
+		pid = fork();
+		if (pid < 0)
+			printf("selftest: Fork failed!\n");
+		else if (pid == 0) {
+			jrpc_context ctx;
+			ctx.error_code = 0;
+			ctx.error_message = NULL;
+			cJSON *fake = cJSON_CreateObject();
+
+			ctx.data = server->procedures[i].data;
+			server->procedures[i].function(&ctx, fake, fake);
+
+			exit(0);
+		} else {
+			int stat_loc;
+
+			if (waitpid(pid, &stat_loc, 0) != pid)
+				printf("selftest: Wait pid(%d) error\n", pid);
+
+			if (!stat_loc)
+				server->procedures[i].allow = 1;
+		}
+	}
+}
+
 static int invoke_procedure(struct jrpc_server *server,
 		struct jrpc_connection * conn, char *name, cJSON *params, cJSON *id) {
 	cJSON *returned = NULL;
@@ -81,7 +112,8 @@ static int invoke_procedure(struct jrpc_server *server,
 	ctx.error_message = NULL;
 	int i = server->procedure_count;
 	while (i--) {
-		if (!strcmp(server->procedures[i].name, name)) {
+		if (!strcmp(server->procedures[i].name, name) &&
+				server->procedures[i].allow) {
 			procedure_found = 1;
 			ctx.data = server->procedures[i].data;
 			returned = server->procedures[i].function(&ctx, params, id);
@@ -341,6 +373,7 @@ static int __jrpc_server_start(struct jrpc_server *server) {
 #endif
 
 void jrpc_server_run(struct jrpc_server *server){
+	selftest_procedure(server);
 	EV_RUN(server->loop, 0);
 }
 
