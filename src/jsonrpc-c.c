@@ -33,10 +33,17 @@ static void *get_in_addr(struct sockaddr *sa) {
 }
 
 static int send_response(struct jrpc_connection * conn, char *response) {
+	int l, len, send;
 	int fd = conn->fd;
 	if (conn->debug_level > 1)
 		printf("JSON Response:\n%s\n", response);
-	write(fd, response, strlen(response));
+
+	for (send = 0, len = strlen(response); send < len; send += l) {
+		l = write(fd, response+send, len - send);
+		if (l < 0)
+			break;
+	}
+
 	write(fd, "\n", 1);
 	return 0;
 }
@@ -236,6 +243,7 @@ static void connection_cb(struct ev_loop *loop, ev_io *w, int revents) {
 		}
 	}
 
+	return close_connection(loop, w);
 }
 
 static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
