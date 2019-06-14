@@ -85,24 +85,27 @@ static int selftest_procedure(struct jrpc_server *server) {
 
 	int i = server->procedure_count;
 	while (i--) {
+		cJSON *fake = cJSON_CreateObject();
+		jrpc_context ctx;
+		ctx.error_code = 0;
+		ctx.error_message = NULL;
+		ctx.data = server->procedures[i].data;
+		jrpc_function function = server->procedures[i].function;
+		char *name = server->procedures[i].name;
+
 		pid = fork();
 		if (pid < 0)
-			printf("selftest: Fork failed!\n");
+			fprintf(stderr, "selftest: Fork failed!\n");
 		else if (pid == 0) {
-			jrpc_context ctx;
-			ctx.error_code = 0;
-			ctx.error_message = NULL;
-			cJSON *fake = cJSON_CreateObject();
-
-			ctx.data = server->procedures[i].data;
-			server->procedures[i].function(&ctx, fake, fake);
+			printf("selftest:%s\n", name); //WARNING!!!: if delete this print, the selftest will crash!
+			function(&ctx, fake, fake);
 
 			exit(0);
 		} else {
 			int stat_loc;
 
 			if (waitpid(pid, &stat_loc, 0) != pid)
-				printf("selftest: Wait pid(%d) error\n", pid);
+				fprintf(stderr, "selftest: Wait pid(%d) error\n", pid);
 
 			if (!stat_loc)
 				server->procedures[i].allow = 1;
