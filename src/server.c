@@ -30,7 +30,7 @@ static int debug; /* enable this to printf */
 #define PROC_BUFF 8192
 unsigned char proc_buff[PROC_BUFF];
 
-#define CMD_BUFF 16384
+#define CMD_BUFF 163840
 unsigned char cmd_buff[CMD_BUFF];
 
 struct jrpc_server my_server;
@@ -309,10 +309,12 @@ int main(int argc, char **argv)
 	 * so, don't close them; but we want to mute errors
 	 * just like a typical daemon
 	 */
+#if 0
 	daemon(0, 1);
 	fd = open ("/dev/null", O_RDWR, 0);
 	if (fd != -1)
 		dup2 (fd, STDERR_FILENO);
+#endif
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
