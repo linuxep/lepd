@@ -15,6 +15,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
 
 #include "jsonrpc-c.h"
 
@@ -32,10 +33,17 @@ static void *get_in_addr(struct sockaddr *sa) {
 }
 
 static int send_response(struct jrpc_connection * conn, char *response) {
+	int l, len, send;
 	int fd = conn->fd;
 	if (conn->debug_level > 1)
 		printf("JSON Response:\n%s\n", response);
-	write(fd, response, strlen(response));
+
+	for (send = 0, len = strlen(response); send < len; send += l) {
+		l = write(fd, response+send, len - send);
+		if (l < 0)
+			break;
+	}
+
 	write(fd, "\n", 1);
 	return 0;
 }
@@ -72,6 +80,39 @@ static int send_result(struct jrpc_connection * conn, cJSON * result,
 	return return_value;
 }
 
+static int selftest_procedure(struct jrpc_server *server) {
+	pid_t pid;
+
+	int i = server->procedure_count;
+	while (i--) {
+		cJSON *fake = cJSON_CreateObject();
+		jrpc_context ctx;
+		ctx.error_code = 0;
+		ctx.error_message = NULL;
+		ctx.data = server->procedures[i].data;
+		jrpc_function function = server->procedures[i].function;
+		char *name = server->procedures[i].name;
+
+		pid = fork();
+		if (pid < 0)
+			fprintf(stderr, "selftest: Fork failed!\n");
+		else if (pid == 0) {
+			printf("selftest:%s\n", name); //WARNING!!!: if delete this print, the selftest will crash!
+			function(&ctx, fake, fake);
+
+			exit(0);
+		} else {
+			int stat_loc;
+
+			if (waitpid(pid, &stat_loc, 0) != pid)
+				fprintf(stderr, "selftest: Wait pid(%d) error\n", pid);
+
+			if (!stat_loc)
+				server->procedures[i].allow = 1;
+		}
+	}
+}
+
 static int invoke_procedure(struct jrpc_server *server,
 		struct jrpc_connection * conn, char *name, cJSON *params, cJSON *id) {
 	cJSON *returned = NULL;
@@ -81,7 +122,8 @@ static int invoke_procedure(struct jrpc_server *server,
 	ctx.error_message = NULL;
 	int i = server->procedure_count;
 	while (i--) {
-		if (!strcmp(server->procedures[i].name, name)) {
+		if (!strcmp(server->procedures[i].name, name) &&
+				server->procedures[i].allow) {
 			procedure_found = 1;
 			ctx.data = server->procedures[i].data;
 			returned = server->procedures[i].function(&ctx, params, id);
@@ -204,6 +246,7 @@ static void connection_cb(struct ev_loop *loop, ev_io *w, int revents) {
 		}
 	}
 
+	return close_connection(loop, w);
 }
 
 static void accept_cb(struct ev_loop *loop, ev_io *w, int revents) {
@@ -341,6 +384,7 @@ static int __jrpc_server_start(struct jrpc_server *server) {
 #endif
 
 void jrpc_server_run(struct jrpc_server *server){
+	selftest_procedure(server);
 	EV_RUN(server->loop, 0);
 }
 

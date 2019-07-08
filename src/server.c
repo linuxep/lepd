@@ -27,10 +27,11 @@ static int debug; /* enable this to printf */
 	} while(0)
 
 #define PORT 12307  // the port users will be connecting to
-#define PROC_BUFF 8192
+#define PROC_BUFF (1024 * 512) //8192
 unsigned char proc_buff[PROC_BUFF];
 
-#define CMD_BUFF 16384
+#define CMD_BUFF (1024 * 1024) //163840
+#define PERF_CMD_BUFF (1024 * 1024 * 10) //163840
 unsigned char cmd_buff[CMD_BUFF];
 
 struct jrpc_server my_server;
@@ -226,19 +227,30 @@ cJSON * run_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
+	unsigned char *buffer;
+	cJSON *ret;
 
 	if (!ctx->data)
 		return NULL;
 
 	fp = popen(ctx->data, "r");
 	if (fp) {
-		memset(cmd_buff, 0, CMD_BUFF);
-		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1 , fp);
+		buffer = (unsigned char *)malloc(CMD_BUFF);
+		if (buffer == NULL) {
+			pclose(fp);
+			return NULL;
+		}
+
+		memset(buffer, 0, CMD_BUFF);
+		size = fread(buffer, 1, CMD_BUFF - strlen(endstring) - 1 , fp);
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, (char *)ctx->data);
 		pclose(fp);
 
-		strcat(cmd_buff, endstring);
-		return cJSON_CreateString(cmd_buff);
+		strcat(buffer, endstring);
+		ret = cJSON_CreateString(buffer);
+		free(buffer);
+
+		return ret;
 	}
 	return NULL;
 }
@@ -270,6 +282,8 @@ cJSON * run_perf_script_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 {
 	FILE *fp;
 	int size;
+	unsigned char *buffer;
+	cJSON *ret;
 
 	if (!ctx->data)
 		return NULL;
@@ -277,13 +291,22 @@ cJSON * run_perf_script_cmd(jrpc_context * ctx, cJSON * params, cJSON *id)
 	system(ctx->data);
 	fp = popen("perf script", "r");
 	if (fp) {
-		memset(cmd_buff, 0, CMD_BUFF);
-		size = fread(cmd_buff, 1, CMD_BUFF - strlen(endstring) - 1, fp);
+		buffer = (unsigned char *)malloc(PERF_CMD_BUFF);
+		if (buffer == NULL) {
+			pclose(fp);
+			return NULL;
+		}
+
+		memset(buffer, 0, PERF_CMD_BUFF);
+		size = fread(buffer, 1, CMD_BUFF - strlen(endstring) - 1, fp);
 		DEBUG_PRINT("run_cmd:size %d:%s\n", size, (char *)ctx->data);
 		pclose(fp);
 
-		strcat(cmd_buff, endstring);
-		return cJSON_CreateString(cmd_buff);
+		strcat(buffer, endstring);
+		ret = cJSON_CreateString(buffer);
+		free(buffer);
+
+		return ret;
 	}
 	return NULL;
 }
@@ -309,10 +332,12 @@ int main(int argc, char **argv)
 	 * so, don't close them; but we want to mute errors
 	 * just like a typical daemon
 	 */
+#if 0
 	daemon(0, 1);
 	fd = open ("/dev/null", O_RDWR, 0);
 	if (fd != -1)
 		dup2 (fd, STDERR_FILENO);
+#endif
 
 	jrpc_server_init(&my_server, PORT);
 	jrpc_register_procedure(&my_server, say_hello, "SayHello", NULL);
@@ -335,7 +360,7 @@ int main(int argc, char **argv)
 	/*********************************************
 	 *
 	 * ****************************************/
-	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIotop", "iotop");
+	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIotop", "iotop -n 1 -b");
 	//jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdIopp", "iopp");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdFree", "free");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdProcrank", "procrank");
@@ -344,7 +369,8 @@ int main(int argc, char **argv)
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTop", "top -n 1 -b | head -n 50");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdTop", "ps -e -o pid,user,pri,ni,vsize,rss,s,%cpu,%mem,time,cmd --sort=-%cpu ");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdTopH", "top -n 1 -b | head -n 50");
-	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdIotop", "iotop -n 1 -b | head -n 50");
+	jrpc_register_procedure(&my_server, run_cmd, "GetCmdJnettop", "jnettop --display text -t 5 --format '$src$,$srcname$,$srcport$,$srcbytes$,$srcpackets$,$srcbps$,$srcpps$,$dst$,$dstname$,$dstport$,$dstbytes$,$dstpackets$,$dstbps$,$dstpps$,$proto$,$totalbytes$,$totalpackets$,$totalbps$,$totalpps$,$filterdata$'");
 	//jrpc_register_procedure(&my_server, run_cmd, "GetCmdSmem", "smem -p -s pss -r -n 50");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDmesg", "dmesg");
 	jrpc_register_procedure(&my_server, run_builtin_cmd, "GetCmdDf", "df -h");
