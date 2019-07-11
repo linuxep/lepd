@@ -223,7 +223,7 @@ void dispath_conn(int anewfd,struct sockaddr_in asin, void*data)
 	int robin = round_robin%init_count;
 	cq_push(work_threads[robin].new_conn_queue,lpNewItem);
 	ev_async_send(work_threads[robin].loop, &(work_threads[robin].async_watcher));
-	printf("pushed fd:%d to thread:%d\n", anewfd, robin);
+	//printf("pushed fd:%d to thread:%d\n", anewfd, robin);
 	round_robin++;
 }
 
@@ -357,7 +357,7 @@ static int eval_request(struct jrpc_server *server,
 static void close_connection(struct ev_loop *loop, ev_io *w) {
 	ev_io_stop(loop, w);
 	close(((struct jrpc_connection *) w)->fd);
-	printf("closed fd:%d\n", ((struct jrpc_connection *) w)->fd);
+	//printf("closed fd:%d\n", ((struct jrpc_connection *) w)->fd);
 	free(((struct jrpc_connection *) w)->buffer);
 	free(((struct jrpc_connection *) w));
 }
@@ -470,7 +470,7 @@ async_cb (EV_P_ ev_async *w, int revents)
 
 		ev_io_start(((WORK_THREAD*)(w->data))->loop,&connection_watcher->io);
 
-		printf("thread[%lu] accept: fd :%d  addr:%s port:%d\n",((WORK_THREAD*)(w->data))->thread_id,item->sfd,item->szAddr,item->port);
+		//printf("thread[%lu] accept: fd :%d  addr:%s port:%d\n",((WORK_THREAD*)(w->data))->thread_id,item->sfd,item->szAddr,item->port);
 
 		free(item);
 		item = NULL;
