@@ -166,6 +166,12 @@ static builtin_func_info lookup_table[LOOKUP_TABLE_COUNT] = {
 		.func = COMMAND(cgtop),
                 .lock = &LOCK(sysstat),
 	},
+	{
+		.name = "irq_info",
+                .type = CMD_TYPE_BUILTIN,
+		.func = COMMAND(irq_info),
+                .lock = &LOCK(sysstat),
+	},
 
 	{
 		.name = NULL,
