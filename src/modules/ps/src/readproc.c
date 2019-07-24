@@ -1562,7 +1562,8 @@ proc_data_t *readproctab3 (int(*want_task)(proc_t *buf), PROCTAB *restrict const
     for (;;) {
         if (n_alloc == n_used) {
             n_alloc = n_alloc*5/4+30;  // grow by over 25%
-            tab = xrealloc(tab,sizeof(proc_t*)*n_alloc);
+            //tab = xrealloc(tab,sizeof(proc_t*)*n_alloc);
+            tab = realloc(tab,sizeof(proc_t*)*n_alloc);
         }
         // let this next guy allocate the necessary proc_t storage
         // (or recycle it) since he can't tolerate realloc relocations

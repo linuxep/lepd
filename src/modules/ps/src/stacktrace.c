@@ -64,7 +64,6 @@ static void stack_trace(char **args){
   char c;
 
   stack_trace_done = 0;
-  signal(SIGCHLD, stack_trace_sigchld);
 
   if((pipe (in_fd) == -1) || (pipe (out_fd) == -1)){
     perror ("could open pipe");
@@ -182,6 +181,5 @@ static void stack_trace_sigsegv(int signum){
 #ifdef DEBUG
 void init_stack_trace(char *prog_name){
   stored_prog_name = prog_name;
-  signal(SIGSEGV, stack_trace_sigsegv);
 }
 #endif

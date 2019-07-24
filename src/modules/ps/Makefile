@@ -15,7 +15,7 @@ TARGET = libps.a
 #LD=$(CROSS_COMPILE)ld
 
 
-CFLAGS = -I$(DIR_INC) -Wall -static -std=c99 -DPACKAGE_VERSION="1.0" -D_GNU_SOURCE
+CFLAGS = -I$(DIR_INC) -Wall -static -g -std=c99 -DPACKAGE_VERSION="1.0" -D_GNU_SOURCE
 
 
  

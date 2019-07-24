@@ -2,6 +2,7 @@
  * Copyright (C) 2017 The Lep Open Source Project
  *
  */
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -13,11 +14,10 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-
 #define BUFFSIZE (64*1024)
 static unsigned long long sleep_time = 1;
 
-int irq_info_main(int argc, char *argv[]){
+int irq_info_main(int argc, char *argv[], int out_fd){
 
 /*******************************
   1 read /proc/stat
@@ -34,16 +34,15 @@ int irq_info_main(int argc, char *argv[]){
   6 irq2 - irq1, softirq2 - softirq2
   7 return
 **********************************/
-
         unsigned long long irq[2]= {0}, softirq[2]= {0};
-
         static int fd;
         const char *b = NULL;
         unsigned long long llbuf = 0;
         char buff[BUFFSIZE-1] = {0};
+	FILE *out_fp = fdopen(out_fd, "w");
 
 	fd = open("/proc/stat", O_RDONLY, 0);
-        read(fd, buff, BUFFSIZE-1);
+	read(fd, buff, BUFFSIZE-1);
         b = strstr(buff, "intr");
         if (b)
                 sscanf(b, "intr %Lu", &llbuf);
@@ -70,6 +69,7 @@ int irq_info_main(int argc, char *argv[]){
         softirq[1] = llbuf;
         close(fd);
 
-        printf("irq:%d/s softirq:%d/s \n", irq[1]-irq[0], softirq[1]-softirq[0]);
-	return 1;
+        fprintf(out_fp,"irq:%d/s softirq:%d/s \n", irq[1]-irq[0], softirq[1]-softirq[0]);
+	fclose(out_fp);
+	return 0;
 }

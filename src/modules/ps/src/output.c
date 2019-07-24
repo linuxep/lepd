@@ -1937,7 +1937,7 @@ static void check_header_width(void){
 
 static char *saved_outbuf;
 
-void show_one_proc(const proc_t *restrict const p, const format_node *restrict fmt){
+void show_one_proc(const proc_t *restrict const p, const format_node *restrict fmt, FILE *out_fp){
   /* unknown: maybe set correct & actual to 1, remove +/- 1 below */
   int correct  = 0;  /* screen position we should be at */
   int actual   = 0;  /* screen position we are at */
@@ -1956,7 +1956,7 @@ void show_one_proc(const proc_t *restrict const p, const format_node *restrict f
     /* have _never_ printed anything, but might need a header */
     if(!--lines_to_next_header){
       lines_to_next_header = header_gap;
-      show_one_proc(NULL,fmt);
+      show_one_proc(NULL,fmt, out_fp);
     }
     /* fprintf(stderr, "No processes available.\n"); */  /* legal? */
     exit(1);
@@ -1964,7 +1964,7 @@ void show_one_proc(const proc_t *restrict const p, const format_node *restrict f
   if(likely(p)){  /* not header, maybe we should call ourselves for it */
     if(unlikely(!--lines_to_next_header)){
       lines_to_next_header = header_gap;
-      show_one_proc(NULL,fmt);
+      show_one_proc(NULL,fmt,out_fp);
     }
   }
   did_stuff = 1;
@@ -2067,11 +2067,11 @@ void show_one_proc(const proc_t *restrict const p, const format_node *restrict f
     if(unlikely(!fmt->next)){
       /* Last column. Write padding + data + newline all together. */
       outbuf[sz] = '\n';
-      fwrite(outbuf-space, space+sz+1, 1, stdout);
+      fwrite(outbuf-space, space+sz+1, 1, out_fp);
       break;
     }
     /* Not the last column. Write padding + data together. */
-    fwrite(outbuf-space, space+sz, 1, stdout);
+    fwrite(outbuf-space, space+sz, 1, out_fp);
     actual  += space+amount;
     correct += fmt->width;
     correct += legit;        /* adjust for SIGNAL expansion */

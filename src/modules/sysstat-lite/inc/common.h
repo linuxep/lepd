@@ -220,15 +220,15 @@ int count_bits
 int count_csvalues
 	(int, char **);
 void cprintf_f
-	(int, int, int, ...);
+	(FILE*, int, int, int, ...);
 void cprintf_in
-	(int, char *, char *, int);
+	(FILE*, int, char *, char *, int);
 void cprintf_pc
-	(int, int, int, ...);
+	(FILE*, int, int, int, ...);
 void cprintf_s
 	(int, char *, char *);
 void cprintf_u64
-	(int, int, ...);
+	(FILE*, int, int, ...);
 void cprintf_x
 	(int, int, ...);
 char *device_name
@@ -268,7 +268,7 @@ double ll_sp_value
 int is_iso_time_fmt
 	(void);
 int print_gal_header
-	(struct tm *, char *, char *, char *, char *, int, int);
+	(struct tm *, char *, char *, char *, char *, int, int, FILE*);
 void print_version
 	(void);
 char *strtolower

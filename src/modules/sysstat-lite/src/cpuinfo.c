@@ -25,7 +25,7 @@
 #include "common.h"
 #include "rd_stats.h"
 
-static void figureout_cpu(void)
+static void figureout_cpu(FILE *out_fp)
 {
 	FILE *fp;
 	char line[8192];
@@ -54,19 +54,24 @@ static void figureout_cpu(void)
 	if(!cpu_name)
 		cpu_name = "unknown";
 
-	printf("cpu_name: %s", cpu_name);
+	fprintf(out_fp,"cpu_name: %s", cpu_name);
 
 	fclose(fp);
+	
 }
 
-int cpuinfo_main(int argc, char **argv)
+int cpuinfo_main(int argc, char **argv, int out_fd)
 {
 	int cpu_nr = 0;
 
+	FILE *out_fp = fdopen(out_fd, "w");
+    if(out_fp == NULL) return EXIT_SUCCESS;
+
 	/* What is the highest processor number on this machine? */
 	cpu_nr = get_cpu_nr(~0, TRUE);
-
-	printf("cpunr: %d\n", cpu_nr);
-	figureout_cpu();
+	fprintf(out_fp,"cpunr: %d\n", cpu_nr);
+	//printf("cpunr: %d\n", cpu_nr);
+	figureout_cpu(out_fp);
+	fclose(out_fp);
 	return 0;
 }

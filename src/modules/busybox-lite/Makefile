@@ -15,7 +15,7 @@ TARGET = libbusybox.a
 #LD=$(CROSS_COMPILE)ld
 
 
-CFLAGS = -I$(DIR_INC) -Wall -static
+CFLAGS = -I$(DIR_INC) -Wall -static -g
 
 
  

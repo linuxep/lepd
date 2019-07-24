@@ -424,13 +424,13 @@ void xprintf(int nr_tab, const char *fmtf, ...)
  * @cpu_nr	Number of CPU.
  * @format	Set to FALSE for (default) plain output, and to TRUE for
  * 		JSON format output.
- *
+ * @fp 		output file pointer
  * RETURNS:
  * TRUE if S_TIME_FORMAT is set to ISO, or FALSE otherwise.
  ***************************************************************************
  */
 int print_gal_header(struct tm *rectime, char *sysname, char *release,
-		     char *nodename, char *machine, int cpu_nr, int format)
+		     char *nodename, char *machine, int cpu_nr, int format, FILE* fp)
 {
 	char cur_date[64];
 	int rc = 0;
@@ -448,7 +448,7 @@ int print_gal_header(struct tm *rectime, char *sysname, char *release,
 
 	if (format == PLAIN_OUTPUT) {
 		/* Plain output */
-		printf("%s %s (%s) \t%s \t_%s_\t(%d CPU)\n", sysname, release, nodename,
+		fprintf(fp, "%s %s (%s) \t%s \t_%s_\t(%d CPU)\n", sysname, release, nodename,
 		       cur_date, machine, cpu_nr);
 	}
 	else {
@@ -1110,7 +1110,7 @@ void init_colors(void)
  * @width	Output width.
  ***************************************************************************
 */
-void cprintf_u64(int num, int width, ...)
+void cprintf_u64(FILE* fp, int num, int width, ...)
 {
 	int i;
 	uint64_t val;
@@ -1126,8 +1126,8 @@ void cprintf_u64(int num, int width, ...)
 		else {
 			printf("%s", sc_int_stat);
 		}
-		printf(" %*"PRIu64, width, val);
-		printf("%s", sc_normal);
+		fprintf(fp," %*"PRIu64, width, val);
+		fprintf(fp,"%s", sc_normal);
 	}
 
 	va_end(args);
@@ -1170,7 +1170,7 @@ void cprintf_x(int num, int width, ...)
  * @wd		Number of decimal places.
  ***************************************************************************
 */
-void cprintf_f(int num, int wi, int wd, ...)
+void cprintf_f(FILE* fp, int num, int wi, int wd, ...)
 {
 	int i;
 	double val;
@@ -1182,13 +1182,13 @@ void cprintf_f(int num, int wi, int wd, ...)
 		val = va_arg(args, double);
 		if (((val < 0.005) && (val > -0.005)) ||
 		    ((wd == 0) && (val < 0.5))) {
-			printf("%s", sc_zero_int_stat);
+			fprintf(fp,"%s", sc_zero_int_stat);
 		}
 		else {
-			printf("%s", sc_int_stat);
+			fprintf(fp,"%s", sc_int_stat);
 		}
-		printf(" %*.*f", wi, wd, val);
-		printf("%s", sc_normal);
+		fprintf(fp," %*.*f", wi, wd, val);
+		fprintf(fp,"%s", sc_normal);
 	}
 
 	va_end(args);
@@ -1204,7 +1204,7 @@ void cprintf_f(int num, int wi, int wd, ...)
  * @wd		Number of decimal places.
  ***************************************************************************
 */
-void cprintf_pc(int num, int wi, int wd, ...)
+void cprintf_pc(FILE* fp, int num, int wi, int wd, ...)
 {
 	int i;
 	double val;
@@ -1215,19 +1215,19 @@ void cprintf_pc(int num, int wi, int wd, ...)
 	for (i = 0; i < num; i++) {
 		val = va_arg(args, double);
 		if (val >= PERCENT_LIMIT_HIGH) {
-			printf("%s", sc_percent_high);
+			fprintf(fp,"%s", sc_percent_high);
 		}
 		else if (val >= PERCENT_LIMIT_LOW) {
-			printf("%s", sc_percent_low);
+			fprintf(fp,"%s", sc_percent_low);
 		}
 		else if (val < 0.005) {
-			printf("%s", sc_zero_int_stat);
+			fprintf(fp,"%s", sc_zero_int_stat);
 		}
 		else {
-			printf("%s", sc_int_stat);
+			fprintf(fp,"%s", sc_int_stat);
 		}
-		printf(" %*.*f", wi, wd, val);
-		printf("%s", sc_normal);
+		fprintf(fp," %*.*f", wi, wd, val);
+		fprintf(fp,"%s", sc_normal);
 	}
 
 	va_end(args);
@@ -1236,6 +1236,7 @@ void cprintf_pc(int num, int wi, int wd, ...)
 /*
  ***************************************************************************
  * Print item name using selected color.
+ *
  * Only one name can be displayed. Name can be an integer or a string.
  *
  * IN:
@@ -1245,16 +1246,16 @@ void cprintf_pc(int num, int wi, int wd, ...)
  * @item_int	Item name (given as an integer value).
  ***************************************************************************
 */
-void cprintf_in(int type, char *format, char *item_string, int item_int)
+void cprintf_in(FILE* fp,int type, char *format, char *item_string, int item_int)
 {
-	printf("%s", sc_item_name);
+	fprintf(fp,"%s", sc_item_name);
 	if (type) {
-		printf(format, item_string);
+		fprintf(fp,format, item_string);
 	}
 	else {
-		printf(format, item_int);
+		fprintf(fp,format, item_int);
 	}
-	printf("%s", sc_normal);
+	fprintf(fp,"%s", sc_normal);
 }
 
 /*

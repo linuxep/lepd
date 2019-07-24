@@ -20,7 +20,7 @@
 #include <sys/klog.h>
 #include "libbb.h"
 
-int dmesg_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
+int dmesg_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 //int dmesg_main(int argc UNUSED_PARAM, char **argv)
 {
 	int len = 2048, level;
@@ -31,6 +31,9 @@ int dmesg_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		OPT_s = 1 << 1,
 		OPT_n = 1 << 2
 	};
+
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
 
 	opt_complementary = "s+:n+"; /* numeric */
 	opts = getopt32(argv, "cs:n:", &len, &level);
@@ -48,15 +51,18 @@ int dmesg_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	if (len > 16*1024*1024)
 		len = 16*1024*1024;
 #endif
-	buf = xmalloc(len);
+	buf = malloc(len);
 	len = klogctl(3 + (opts & OPT_c), buf, len); /* read ring buffer */
 	if (len < 0)
-		bb_perror_msg_and_die("klogctl");
+		//bb_perror_msg_and_die("klogctl");
+		goto exit;
 	if (len == 0)
-		return EXIT_SUCCESS;
+		//return EXIT_SUCCESS;
+		goto exit;
 
 
-	if (ENABLE_FEATURE_DMESG_PRETTY) {
+	//if (ENABLE_FEATURE_DMESG_PRETTY) {
+	if (0) {
 		int last = '\n';
 		int in = 0;
 
@@ -76,11 +82,15 @@ int dmesg_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		if (last != '\n')
 			bb_putchar('\n');
 	} else {
-		full_write(STDOUT_FILENO, buf, len);
-		if (buf[len-1] != '\n')
-			bb_putchar('\n');
+		//full_write(STDOUT_FILENO, buf, len);
+		//if (buf[len-1] != '\n')
+			//bb_putchar('\n');
+		fprintf(fp,"%s\n",buf);
 	}
 
-	if (ENABLE_FEATURE_CLEAN_UP) free(buf);
+	//if (ENABLE_FEATURE_CLEAN_UP) free(buf);
+exit:
+	free(buf);
+	fclose(fp);
 	return EXIT_SUCCESS;
 }

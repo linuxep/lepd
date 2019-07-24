@@ -176,7 +176,7 @@ sig_handler(int signo)
 }
 
 int
-iotop_main(int argc, char *argv[])
+iotop_main(int argc, char *argv[], int fd)
 {
     progname = argv[0];
 
@@ -186,9 +186,6 @@ iotop_main(int argc, char *argv[])
 
     nl_init();
 
-
-    if (signal(SIGINT, sig_handler) == SIG_ERR)
-        perror("signal");
 
     struct xxxid_stats *ps = NULL;
     struct xxxid_stats *cs = NULL;
@@ -209,7 +206,7 @@ iotop_main(int argc, char *argv[])
     do
     {
         cs = fetch_data(config.f.processes, filter1);
-        view(cs, ps, params.iter);
+        view(cs, ps, params.iter,fd);
 
         if (ps)
             free_stats_chain(ps);
