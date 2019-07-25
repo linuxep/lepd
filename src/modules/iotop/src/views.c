@@ -237,7 +237,7 @@ void sort_diff(struct xxxid_stats *d)
     d[len - 1].__next = NULL;
 }
 
-void view_curses(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
+void view_curses(struct xxxid_stats *cs, struct xxxid_stats *ps,int iter)
 {
 #if 0
     if (!stdscr)
@@ -380,7 +380,7 @@ int curses_sleep(unsigned int seconds)
 }
 
 #define MAX_LINES 50
-void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
+void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter, int fd)
 {
     int diff_len = 0;
 
@@ -389,6 +389,11 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
 
     double total_read, total_write;
     char *str_read, *str_write;
+	
+    if(cs == NULL) return EXIT_SUCCESS;
+
+    FILE *fp = fdopen(fd, "w");
+    if(fp == NULL) return EXIT_SUCCESS;
 
     calc_total(diff, &total_read, &total_write);
 
@@ -398,7 +403,7 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
     humanize_val(&total_read, &str_read);
     humanize_val(&total_write, &str_write);
 
-    printf(HEADER_FORMAT,
+    fprintf(fp,HEADER_FORMAT,
            total_read,
            str_read,
            total_write,
@@ -408,13 +413,13 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
     if (config.f.timestamp)
     {
         time_t t = time(NULL);
-        printf(" | %s", ctime(&t));
+        fprintf(fp ," | %s", ctime(&t));
     }
     else
-        printf("\n");
+        fprintf(fp,"\n");
 
     if (!config.f.quite)
-        printf("%5s %4s %8s %11s %11s %6s %6s %s\n",
+        fprintf(fp,"%5s %4s %8s %11s %11s %6s %6s %s\n",
                config.f.processes ? "PID" : "TID",
                "PRIO",
                "USER",
@@ -457,7 +462,7 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
             humanize_val(&write_val, &write_str);
         }
 
-        printf("%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
+        fprintf(fp,"%5i %4s %-10.10s %7.2f %-3.3s %7.2f %-3.3s %2.2f %% %2.2f %% %s\n",
                s->tid,
                str_ioprio_ext(s->io_prio,s->tid),
                pwd ? pwd->pw_name : "UNKNOWN",
@@ -472,4 +477,5 @@ void view_batch(struct xxxid_stats *cs, struct xxxid_stats *ps, int iter)
     }
 
     free(diff);
+    fclose(fp);
 }

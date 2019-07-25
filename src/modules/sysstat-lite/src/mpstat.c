@@ -220,14 +220,14 @@ void sfree_mp_struct(void)
  ***************************************************************************
  */
 void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,
-			   char *prev_string, char *curr_string)
+			   char *prev_string, char *curr_string, FILE* fp)
 {
 	struct stats_cpu *scc, *scp;
 	unsigned long long pc_itv;
 	int cpu;
 
 	if (dis) {
-		printf("\n%-11s  CPU    %%usr   %%nice    %%sys %%iowait    %%irq   "
+		fprintf(fp,"\n%-11s  CPU    %%usr   %%nice    %%sys %%iowait    %%irq   "
 		       "%%soft  %%steal  %%guest  %%gnice   %%idle\n",
 		       prev_string);
 	}
@@ -235,10 +235,10 @@ void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr
 	/* Check if we want global stats among all proc */
 	if (*cpu_bitmap & 1) {
 
-		printf("%-11s", curr_string);
-		cprintf_in(IS_STR, " %s", " all", 0);
+		fprintf(fp,"%-11s", curr_string);
+		cprintf_in(fp,IS_STR, " %s", " all", 0);
 
-		cprintf_pc(10, 7, 2,
+		cprintf_pc(fp,10, 7, 2,
 			   (st_cpu[curr]->cpu_user - st_cpu[curr]->cpu_guest) <
 			   (st_cpu[prev]->cpu_user - st_cpu[prev]->cpu_guest) ?
 			   0.0 :
@@ -277,7 +277,7 @@ void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr
 			   ll_sp_value(st_cpu[prev]->cpu_idle,
 				       st_cpu[curr]->cpu_idle,
 				       g_itv));
-		printf("\n");
+		fprintf(fp,"\n");
 	}
 
 	for (cpu = 1; cpu <= cpu_nr; cpu++) {
@@ -300,17 +300,17 @@ void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr
 		     scc->cpu_hardirq + scc->cpu_softirq) == 0) {
 
 			if (!DISPLAY_ONLINE_CPU(flags)) {
-				printf("%-11s", curr_string);
-				cprintf_in(IS_INT, " %4d", "", cpu - 1);
-				cprintf_pc(10, 7, 2,
+				fprintf(fp,"%-11s", curr_string);
+				cprintf_in(fp,IS_INT, " %4d", "", cpu - 1);
+				cprintf_pc(fp,10, 7, 2,
 					   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-				printf("\n");
+				fprintf(fp,"\n");
 			}
 			continue;
 		}
 
-		printf("%-11s", curr_string);
-		cprintf_in(IS_INT, " %4d", "", cpu - 1);
+		fprintf(fp,"%-11s", curr_string);
+		cprintf_in(fp,IS_INT, " %4d", "", cpu - 1);
 
 		/* Recalculate itv for current proc */
 		pc_itv = get_per_cpu_interval(scc, scp);
@@ -320,13 +320,13 @@ void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr
 			 * If the CPU is tickless then there is no change in CPU values
 			 * but the sum of values is not zero.
 			 */
-			cprintf_pc(10, 7, 2,
+			cprintf_pc(fp,10, 7, 2,
 				   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0);
-			printf("\n");
+			fprintf(fp,"\n");
 		}
 
 		else {
-			cprintf_pc(10, 7, 2,
+			cprintf_pc(fp,10, 7, 2,
 				   (scc->cpu_user - scc->cpu_guest) < (scp->cpu_user - scp->cpu_guest) ?
 				   0.0 :
 				   ll_sp_value(scp->cpu_user - scp->cpu_guest,
@@ -363,7 +363,7 @@ void write_plain_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr
 				   ll_sp_value(scp->cpu_idle,
 					       scc->cpu_idle,
 					       pc_itv));
-			printf("\n");
+			fprintf(fp,"\n");
 		}
 	}
 }
@@ -555,7 +555,7 @@ void write_json_cpu_stats(int tab, unsigned long long g_itv, int prev, int curr,
  ***************************************************************************
  */
 void write_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,
-		     char *prev_string, char *curr_string, int tab, int *next)
+		     char *prev_string, char *curr_string, int tab, int *next, FILE* fp)
 {
 	if (DISPLAY_JSON_OUTPUT(flags)) {
 		if (*next) {
@@ -565,7 +565,7 @@ void write_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,
 		write_json_cpu_stats(tab, g_itv, prev, curr, curr_string);
 	}
 	else {
-		write_plain_cpu_stats(dis, g_itv, prev, curr, prev_string, curr_string);
+		write_plain_cpu_stats(dis, g_itv, prev, curr, prev_string, curr_string, fp);
 	}
 }
 
@@ -589,7 +589,7 @@ void write_cpu_stats(int dis, unsigned long long g_itv, int prev, int curr,
  ***************************************************************************
  */
 void write_plain_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,
-			       char *prev_string, char *curr_string)
+			       char *prev_string, char *curr_string, FILE* fp)
 {
 	struct stats_cpu *scc, *scp;
 	struct stats_irq *sic, *sip;
@@ -597,16 +597,16 @@ void write_plain_isumcpu_stats(int dis, unsigned long long itv, int prev, int cu
 	int cpu;
 
 	if (dis) {
-		printf("\n%-11s  CPU    intr/s\n", prev_string);
+		fprintf(fp,"\n%-11s  CPU    intr/s\n", prev_string);
 		}
 
 	if (*cpu_bitmap & 1) {
-		printf("%-11s", curr_string);
-		cprintf_in(IS_STR, " %s", " all", 0);
+		fprintf(fp,"\"%-11s", curr_string);
+		cprintf_in(fp,IS_STR, " %s", " all", 0);
 		/* Print total number of interrupts among all cpu */
-		cprintf_f(1, 9, 2,
+		cprintf_f(fp,1, 9, 2,
 			  S_VALUE(st_irq[prev]->irq_nr, st_irq[curr]->irq_nr, itv));
-		printf("\n");
+		fprintf(fp,"\n");
 	}
 
 	for (cpu = 1; cpu <= cpu_nr; cpu++) {
@@ -632,30 +632,30 @@ void write_plain_isumcpu_stats(int dis, unsigned long long itv, int prev, int cu
 				 * Display offline CPU if requested by the user.
 				 * Value displayed is 0.00.
 				 */
-				printf("%-11s", curr_string);
-				cprintf_in(IS_INT, " %4d", "", cpu - 1);
-				cprintf_f(1, 9, 2, 0.0);
-				printf("\n");
+				fprintf(fp,"%-11s", curr_string);
+				cprintf_in(fp,IS_INT, " %4d", "", cpu - 1);
+				cprintf_f(fp,1, 9, 2, 0.0);
+				fprintf(fp,"\n");
 			}
 			continue;
 		}
 
-		printf("%-11s", curr_string);
-		cprintf_in(IS_INT, " %4d", "", cpu - 1);
+		fprintf(fp,"%-11s", curr_string);
+		cprintf_in(fp,IS_INT, " %4d", "", cpu - 1);
 
 		/* Recalculate itv for current proc */
 		pc_itv = get_per_cpu_interval(scc, scp);
 
 		if (!pc_itv) {
 			/* This is a tickless CPU: Value displayed is 0.00 */
-			cprintf_f(1, 9, 2, 0.0);
-			printf("\n");
+			cprintf_f(fp,1, 9, 2, 0.0);
+			fprintf(fp,"\n");
 		}
 		else {
 			/* Display total number of interrupts for current CPU */
-			cprintf_f(1, 9, 2,
+			cprintf_f(fp,1, 9, 2,
 				  S_VALUE(sip->irq_nr, sic->irq_nr, itv));
-			printf("\n");
+			fprintf(fp,"\n");
 		}
 	}
 }
@@ -769,7 +769,7 @@ void write_json_isumcpu_stats(int tab, unsigned long long itv, int prev, int cur
  ***************************************************************************
  */
 void write_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,
-		     char *prev_string, char *curr_string, int tab, int *next)
+		     char *prev_string, char *curr_string, int tab, int *next, FILE* fp)
 {
 	if (DISPLAY_JSON_OUTPUT(flags)) {
 		if (*next) {
@@ -779,7 +779,7 @@ void write_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,
 		write_json_isumcpu_stats(tab, itv, prev, curr, curr_string);
 	}
 	else {
-		write_plain_isumcpu_stats(dis, itv, prev, curr, prev_string, curr_string);
+		write_plain_isumcpu_stats(dis, itv, prev, curr, prev_string, curr_string, fp);
 	}
 }
 
@@ -806,7 +806,7 @@ void write_isumcpu_stats(int dis, unsigned long long itv, int prev, int curr,
  */
 void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 			      unsigned long long itv, int prev, int curr,
-			      char *prev_string, char *curr_string)
+			      char *prev_string, char *curr_string, FILE* fp)
 {
 	struct stats_cpu *scc;
 	int j = ic_nr, offset, cpu, colwidth[NR_IRQS];
@@ -835,15 +835,15 @@ void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 
 	if (dis || (j < ic_nr)) {
 		/* Print header */
-		printf("\n%-11s  CPU", prev_string);
+		fprintf(fp,"\n%-11s  CPU", prev_string);
 		for (j = 0; j < ic_nr; j++) {
 			p0 = st_ic[curr] + j;
 			if (p0->irq_name[0] == '\0')
 				/* End of the list of interrupts */
 				break;
-			printf(" %8s/s", p0->irq_name);
+			fprintf(fp," %8s/s", p0->irq_name);
 		}
-		printf("\n");
+		fprintf(fp,"\n");
 	}
 
 	/* Calculate column widths */
@@ -886,8 +886,8 @@ void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 				continue;
 		}
 
-		printf("%-11s", curr_string);
-		cprintf_in(IS_INT, "  %3d", "", cpu - 1);
+		fprintf(fp,"%-11s", curr_string);
+		cprintf_in(fp,IS_INT, "  %3d", "", cpu - 1);
 
 		for (j = 0; j < ic_nr; j++) {
 			p0 = st_ic[curr] + j;	/* irq_name set only for CPU#0 */
@@ -921,7 +921,7 @@ void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 
 			if (!strcmp(p0->irq_name, q0->irq_name) || !interval) {
 				q = st_ic[prev] + (cpu - 1) * ic_nr + offset;
-				cprintf_f(1, colwidth[j], 2,
+				cprintf_f(fp,1, colwidth[j], 2,
 					  S_VALUE(q->interrupt, p->interrupt, itv));
 			}
 			else {
@@ -929,11 +929,11 @@ void write_plain_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 				 * Instead of printing "N/A", assume that previous value
 				 * for this new interrupt was zero.
 				 */
-				cprintf_f(1, colwidth[j], 2,
+				cprintf_f(fp,1, colwidth[j], 2,
 					  S_VALUE(0, p->interrupt, itv));
 			}
 		}
-		printf("\n");
+		fprintf(fp,"\n");
 	}
 }
 
@@ -1087,7 +1087,7 @@ void write_json_irqcpu_stats(int tab, struct stats_irqcpu *st_ic[], int ic_nr,
 void write_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 			unsigned long long itv, int prev, int curr,
 			char *prev_string, char *curr_string, int tab,
-			int *next, int type)
+			int *next, int type, FILE* fp)
 {
 	if (DISPLAY_JSON_OUTPUT(flags)) {
 		if (*next) {
@@ -1099,7 +1099,7 @@ void write_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
 	}
 	else {
 		write_plain_irqcpu_stats(st_ic, ic_nr, dis, itv, prev, curr,
-					 prev_string, curr_string);
+					 prev_string, curr_string, fp);
 	}
 }
 
@@ -1122,7 +1122,7 @@ void write_irqcpu_stats(struct stats_irqcpu *st_ic[], int ic_nr, int dis,
  ***************************************************************************
  */
 static void write_stats_core(int prev, int curr, int dis,
-		      char *prev_string, char *curr_string)
+		      char *prev_string, char *curr_string, FILE* fp)
 {
 	struct stats_cpu *scc, *scp;
 	unsigned long long itv, g_itv;
@@ -1150,23 +1150,23 @@ static void write_stats_core(int prev, int curr, int dis,
 	/* Print CPU stats */
 	if (DISPLAY_CPU(actflags)) {
 		write_cpu_stats(dis, g_itv, prev, curr, prev_string, curr_string,
-				tab, &next);
+				tab, &next, fp);
 	}
 
 	/* Print total number of interrupts per processor */
 	if (DISPLAY_IRQ_SUM(actflags)) {
 		write_isumcpu_stats(dis, itv, prev, curr, prev_string, curr_string,
-				    tab, &next);
+				    tab, &next, fp);
 	}
 
 	/* Display each interrupt value for each CPU */
 	if (DISPLAY_IRQ_CPU(actflags)) {
 		write_irqcpu_stats(st_irqcpu, irqcpu_nr, dis, itv, prev, curr,
-				   prev_string, curr_string, tab, &next, M_D_IRQ_CPU);
+				   prev_string, curr_string, tab, &next, M_D_IRQ_CPU, fp);
 	}
 	if (DISPLAY_SOFTIRQS(actflags)) {
 		write_irqcpu_stats(st_softirqcpu, softirqcpu_nr, dis, itv, prev, curr,
-				   prev_string, curr_string, tab, &next, M_D_SOFTIRQS);
+				   prev_string, curr_string, tab, &next, M_D_SOFTIRQS, fp);
 	}
 
 	if (DISPLAY_JSON_OUTPUT(flags)) {
@@ -1203,13 +1203,13 @@ static void write_stats_core(int prev, int curr, int dis,
  * @dis		TRUE if a header line must be printed.
  ***************************************************************************
  */
-void write_stats_avg(int curr, int dis)
+void write_stats_avg(int curr, int dis, FILE* fp)
 {
 	char string[16];
 
 	strncpy(string, _("Average:"), 16);
 	string[15] = '\0';
-	write_stats_core(2, curr, dis, string, string);
+	write_stats_core(2, curr, dis, string, string, fp);
 }
 
 /*
@@ -1221,7 +1221,7 @@ void write_stats_avg(int curr, int dis)
  * @dis		TRUE if a header line must be printed.
  ***************************************************************************
  */
-void write_stats(int curr, int dis)
+void write_stats(int curr, int dis, FILE* fp)
 {
 	char cur_time[2][16];
 
@@ -1241,7 +1241,7 @@ void write_stats(int curr, int dis)
 		strftime(cur_time[curr], sizeof(cur_time[curr]), "%X", &(mp_tstamp[curr]));
 	}
 
-	write_stats_core(!curr, curr, dis, cur_time[!curr], cur_time[curr]);
+	write_stats_core(!curr, curr, dis, cur_time[!curr], cur_time[curr], fp);
 }
 
 /*
@@ -1356,7 +1356,7 @@ void read_interrupts_stat(char *file, struct stats_irqcpu *st_ic[], int ic_nr, i
  * @rows	Number of rows of screen.
  ***************************************************************************
  */
-void rw_mpstat_loop(int dis_hdr, int rows)
+void rw_mpstat_loop(int dis_hdr, int rows, FILE* fp)
 {
 	struct stats_cpu *scc;
 	int cpu;
@@ -1406,18 +1406,13 @@ void rw_mpstat_loop(int dis_hdr, int rows)
 		if (DISPLAY_SOFTIRQS(actflags)) {
 			memset(st_softirqcpu[1], 0, STATS_IRQCPU_SIZE * (cpu_nr + 1) * softirqcpu_nr);
 		}
-		write_stats(0, DISP_HDR);
+		write_stats(0, DISP_HDR, fp);
 		if (DISPLAY_JSON_OUTPUT(flags)) {
 			printf("\n\t\t\t]\n\t\t}\n\t]\n}}\n");
 		}
 		exit(0);
 	}
 
-	/* Set a handler for SIGALRM */
-	memset(&alrm_act, 0, sizeof(alrm_act));
-	alrm_act.sa_handler = alarm_handler;
-	sigaction(SIGALRM, &alrm_act, NULL);
-	alarm(interval);
 
 	/* Save the first stats collected. Will be used to compute the average */
 	mp_tstamp[2] = mp_tstamp[0];
@@ -1435,10 +1430,10 @@ void rw_mpstat_loop(int dis_hdr, int rows)
 		/* Set a handler for SIGINT */
 		memset(&int_act, 0, sizeof(int_act));
 		int_act.sa_handler = int_handler;
-		sigaction(SIGINT, &int_act, NULL);
+		//sigaction(SIGINT, &int_act, NULL);
 	}
 
-	pause();
+	//pause();
 
 	if (sigint_caught)
 		/* SIGINT signal caught during first interval: Exit immediately */
@@ -1490,7 +1485,7 @@ void rw_mpstat_loop(int dis_hdr, int rows)
 			}
 			lines++;
 		}
-		write_stats(curr, dis);
+		write_stats(curr, dis, fp);
 
 		if (count > 0) {
 			count--;
@@ -1520,7 +1515,7 @@ void rw_mpstat_loop(int dis_hdr, int rows)
 		printf("\n\t\t\t]\n\t\t}\n\t]\n}}\n");
 	}
 	else {
-		write_stats_avg(curr, dis_hdr);
+		write_stats_avg(curr, dis_hdr, fp);
 	}
 }
 
@@ -1529,7 +1524,7 @@ void rw_mpstat_loop(int dis_hdr, int rows)
  * Main entry to the program
  ***************************************************************************
  */
-int mpstat_main(int argc, char **argv)
+int mpstat_main(int argc, char **argv, int fd)
 {
 	int opt = 0, i, actset = FALSE;
 	struct utsname header;
@@ -1538,7 +1533,10 @@ int mpstat_main(int argc, char **argv)
 	char *t;
 	
 	interval = -1, count = 0;
-	actflags = 0; flags = 0;
+        actflags = 0; flags = 0;
+
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
 #ifdef USE_NLS
 	/* Init National Language Support */
 	init_nls();
@@ -1738,13 +1736,13 @@ int mpstat_main(int argc, char **argv)
 	uname(&header);
 	print_gal_header(&(mp_tstamp[0]), header.sysname, header.release,
 			 header.nodename, header.machine, get_cpu_nr(~0, FALSE),
-			 DISPLAY_JSON_OUTPUT(flags));
+			 DISPLAY_JSON_OUTPUT(flags), fp);
 
 	/* Main loop */
-	rw_mpstat_loop(dis_hdr, rows);
+	rw_mpstat_loop(dis_hdr, rows, fp);
 
 	/* Free structures */
 	sfree_mp_struct();
-
+	fclose(fp);
 	return 0;
 }

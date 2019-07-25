@@ -10,6 +10,7 @@
 
 #include "cJSON.h"
 #include <ev.h>
+#include <pthread.h>
 
 /*
  *

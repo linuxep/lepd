@@ -560,13 +560,13 @@ static unsigned long display_header(int scr_width, int *lines_rem_p)
 		"Mem: %luK used, %luK free, %luK shrd, %luK buff, %luK cached",
 		used, mfree, shared, buffers, cached);
 	/* go to top & clear to the end of screen */
-	printf(OPT_BATCH_MODE ? "%s\n" : "\033[H\033[J%s\n", scrbuf);
+//	printf(OPT_BATCH_MODE ? "%s\n" : "\033[H\033[J%s\n", scrbuf);
 	(*lines_rem_p)--;
 
 	/* Display CPU time split as percentage of total time
 	 * This displays either a cumulative line or one line per CPU
 	 */
-	display_cpus(scr_width, scrbuf, lines_rem_p);
+//	display_cpus(scr_width, scrbuf, lines_rem_p);
 
 	/* read load average as a string */
 	buf[0] = '\0';
@@ -574,13 +574,13 @@ static unsigned long display_header(int scr_width, int *lines_rem_p)
 	buf[sizeof(buf) - 1] = '\n';
 	*strchr(buf, '\n') = '\0';
 	snprintf(scrbuf, scr_width, "Load average: %s", buf);
-	puts(scrbuf);
+//	puts(scrbuf);
 	(*lines_rem_p)--;
 
 	return total;
 }
 
-static NOINLINE void display_process_list(int lines_rem, int scr_width)
+static NOINLINE void display_process_list(int lines_rem, int scr_width, FILE* fp)
 {
 	enum {
 		BITS_PER_INT = sizeof(int) * 8
@@ -599,7 +599,7 @@ static NOINLINE void display_process_list(int lines_rem, int scr_width)
 #endif
 
 	/* what info of the processes is shown */
-	printf(OPT_BATCH_MODE ? "%.*s" : "\033[7m%.*s\033[0m", scr_width,
+	fprintf(fp,OPT_BATCH_MODE ? "%.*s" : "\033[7m%.*s\033[0m", scr_width,
 		"  PID  PPID USER     STAT   VSZ %VSZ"
 		IF_FEATURE_TOP_SMP_PROCESS(" CPU")
 		IF_FEATURE_TOP_CPU_USAGE_PERCENTAGE(" %CPU")
@@ -675,9 +675,9 @@ static NOINLINE void display_process_list(int lines_rem, int scr_width)
 #endif
 
 		if (s->vsz >= 100000)
-			sprintf(vsz_str_buf, "%6ldm", s->vsz/1024);
+			sprintf(vsz_str_buf, "%6ldm ", s->vsz/1024);
 		else
-			sprintf(vsz_str_buf, "%7lu", s->vsz);
+			sprintf(vsz_str_buf, "%7lu ", s->vsz);
 		/* PID PPID USER STAT VSZ %VSZ [%CPU] COMMAND */
 		col = snprintf(line_buf, scr_width,
 				"\n" "%5u%6u %-8.8s %s%s" FMT
@@ -692,14 +692,14 @@ static NOINLINE void display_process_list(int lines_rem, int scr_width)
 		);
 		if ((int)(col + 1) < scr_width)
 			read_cmdline(line_buf + col, scr_width - col, s->pid, s->comm);
-		fputs(line_buf, stdout);
+		fputs(line_buf, fp);
 		/* printf(" %d/%d %lld/%lld", s->pcpu, total_pcpu,
 			cur_jif.busy - prev_jif.busy, cur_jif.total - prev_jif.total); */
 		s++;
 	}
 	/* printf(" %d", hist_iterations); */
-	bb_putchar(OPT_BATCH_MODE ? '\n' : '\r');
-	fflush_all();
+	//bb_putchar(OPT_BATCH_MODE ? '\n' : '\r');
+	//fflush_all();
 }
 #undef UPSCALE
 #undef SHOW_STAT
@@ -1105,7 +1105,17 @@ static unsigned handle_input(unsigned scan_mask, unsigned interval)
  * TODO: -i STRING param as a better alternative?
  */
 
-int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
+static void cleanup_mem(void)
+{
+	if (ENABLE_FEATURE_CLEAN_UP) {
+		clearmems();
+# if ENABLE_FEATURE_TOP_CPU_USAGE_PERCENTAGE
+		free(prev_hist);
+# endif
+	}
+}
+
+int top_main(int argc, char **argv, int fd) //MAIN_EXTERNALLY_VISIBLE;
 //int top_main(int argc UNUSED_PARAM, char **argv)
 {
 	int iterations;
@@ -1113,6 +1123,8 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	unsigned interval;
 	char *str_interval, *str_iterations;
 	unsigned scan_mask = TOP_MASK;
+	FILE *fp = fdopen(fd, "w");
+	if(fp == NULL) return EXIT_SUCCESS;
 #if ENABLE_FEATURE_USE_TERMIOS
 	struct termios new_settings;
 #endif
@@ -1149,6 +1161,9 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 	}
 
 	/* change to /proc */
+	char oldpath[128];
+    getcwd(oldpath, 128);
+	//printf("oldpath:%s\n",oldpath);
 	xchdir("/proc");
 
 #if ENABLE_FEATURE_TOP_CPU_USAGE_PERCENTAGE
@@ -1171,7 +1186,7 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		tcsetattr_stdin_TCSANOW(&new_settings);
 	}
 
-	bb_signals(BB_FATAL_SIGS, sig_catcher);
+	//bb_signals(BB_FATAL_SIGS, sig_catcher);
 
 	/* Eat initial input, if any */
 	scan_mask = handle_input(scan_mask, 0);
@@ -1197,7 +1212,7 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 			if (col > LINE_BUF_SIZE - 2)
 				col = LINE_BUF_SIZE - 2;
 		}
-		G.lines = 50;
+		//G.lines = 50;
 		/* read process IDs & status for all the processes */
 		ntop = 0;
 		while ((p = procps_scan(p, scan_mask)) != NULL) {
@@ -1266,24 +1281,27 @@ int top_main(int argc, char **argv) //MAIN_EXTERNALLY_VISIBLE;
 		}
 #endif
 		if (scan_mask != TOPMEM_MASK)
-			display_process_list(G.lines, col);
+			display_process_list(G.lines, col, fp);
 #if ENABLE_FEATURE_TOPMEM
 		else
 			display_topmem_process_list(G.lines, col);
 #endif
 		clearmems();
-		if (iterations >= 0 && !--iterations)
+		//if (iterations >= 0 && !--iterations)
 			break;
 #if !ENABLE_FEATURE_USE_TERMIOS
-		sleep(interval);
+		//sleep(interval);
 #else
 		scan_mask = handle_input(scan_mask, interval);
 #endif /* FEATURE_USE_TERMIOS */
 	} /* end of "while (not Q)" */
 
-	bb_putchar('\n');
+	//bb_putchar('\n');
 #if ENABLE_FEATURE_USE_TERMIOS
 	reset_term();
 #endif
+	cleanup_mem();
+	fclose(fp);
+	xchdir(oldpath);
 	return EXIT_SUCCESS;
 }

@@ -507,32 +507,32 @@ static int refresh(unsigned iteration) {
 }
 
 
-void display() {
+void display(FILE *out_fp) {
 	struct Cgroup *p;
 	p = G->prev;
 	
-	printf("-----------------------path----------------------	-task-	  ----cpu(%)----	-memory(MB)-	-input(bp/s)-	-output(bp/s)-\n");
+	fprintf(out_fp, "-----------------------path----------------------	-task-	  ----cpu(%)----	-memory(MB)-	-input(bp/s)-	-output(bp/s)-\n");
 	
 	while(p != G) {
 		if (p->tasks != 0) {
 			printf("%-50s	%4d", p->path, p->tasks);
 			if (!p->cpu_fraction)
-				printf("	%8s", "-");
+				fprintf(out_fp,"	%8s", "-");
 			else
-				printf("	%9.2lf", p->cpu_fraction);
+				fprintf(out_fp,"	%9.2lf", p->cpu_fraction);
 			if (!p->memory)
-				printf("	%8s", "-");
+				fprintf(out_fp,"	%8s", "-");
 			else
-				printf("	%5ld", p->memory);
+				fprintf(out_fp,"	%5ld", p->memory);
 			if (!p->io_in_bps)
-                                printf("        %8s", "-");
+                                fprintf(out_fp,"        %8s", "-");
                         else
-                                printf("        %5ld", p->io_in_bps);
+                                fprintf(out_fp,"        %5ld", p->io_in_bps);
 			if (!p->io_out_bps)
-                                printf("        %8s", "-");
+                                fprintf(out_fp,"        %8s", "-");
                         else
-                                printf("        %5ld", p->io_out_bps);
-			printf("\n");		
+                                fprintf(out_fp,"        %5ld", p->io_out_bps);
+			fprintf(out_fp,"\n");		
 		}
 		p = p->prev;
 	}
@@ -601,10 +601,13 @@ int read_from_blkio(uint64_t *m, uint64_t *n) {
 
 }
 
-int cgtop_main(int argc, char *argv[])
+int cgtop_main(int argc, char *argv[],int out_fd)
 {
 	
 	unsigned iteration = 0;
+
+	FILE *out_fp = fdopen(out_fd, "w");
+    if(out_fp == NULL) return EXIT_SUCCESS;
 
 	clock_gettime(CLOCK_MONOTONIC, &old_time);
 	read_from_cpuacct(&old_usage);	
@@ -615,7 +618,7 @@ int cgtop_main(int argc, char *argv[])
 	
 	refresh(iteration++);
 	
-	display();
-	
+	display(out_fp);
+	fclose(out_fp);
 	return 0;
 } 
